@@ -30,9 +30,9 @@ fn build_discover() {
     xid.set(xid_array);
     dhcp_packet.set_xid(xid);
 
-    let mut oct = Octets::<2>::new();
-    oct.from_num(0x1234);
-    println!("{:?}", oct);
+    let mut secs = Octets::<SECS_LEN>::new();
+    secs.from_num(0);
+    dhcp_packet.set_secs(secs);
 
     println!("{:?}", dhcp_packet);
 }

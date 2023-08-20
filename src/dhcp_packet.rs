@@ -61,6 +61,7 @@ impl DhcpPacket {
     }
     pub fn set_hops(&mut self, hops: u8) { self.hops = hops; }
     pub fn set_xid(&mut self, xid: Octets<XID_LEN>) { self.xid = xid; }
+    pub fn set_secs(&mut self, secs: Octets<SECS_LEN>) { self.secs = secs; }
 }
 
 #[repr(u8)]
