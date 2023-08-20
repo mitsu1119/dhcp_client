@@ -1,3 +1,7 @@
+#[path = "./octets.rs"]
+mod octets;
+use octets::Octets;
+
 const XID_LEN: usize = 4;
 const CIADDR_LEN: usize = 4;
 const YIADDR_LEN: usize = 4;
@@ -9,22 +13,23 @@ pub struct DhcpPacket {
     op: Op,
     htype: Htype,
     hlen: u8,
-    xid: [u8; XID_LEN],
-    ciaddr: [u8; CIADDR_LEN],
-    yiaddr: [u8; YIADDR_LEN],
-    chaddr: [u8; CHADDR_LEN]
+    xid: Octets<XID_LEN>,
+    ciaddr: Octets<CIADDR_LEN>,
+    yiaddr: Octets<YIADDR_LEN>,
+    chaddr: Octets<CHADDR_LEN>
 }
 
 impl DhcpPacket {
     pub fn new() -> Self {
+        let mut xid = Octets::new();
         Self {
             op: Op::BOOTREQUEST,
             htype: Htype::Ethernet,
             hlen: 0,
-            xid: [0; XID_LEN],
-            ciaddr: [0; CIADDR_LEN],
-            yiaddr: [0; YIADDR_LEN],
-            chaddr: [0; CHADDR_LEN]
+            xid: xid,
+            ciaddr: Octets::new(),
+            yiaddr: Octets::new(),
+            chaddr: Octets::new()
         }
     }
 
