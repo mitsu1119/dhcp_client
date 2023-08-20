@@ -2,34 +2,53 @@
 mod octets;
 use octets::Octets;
 
-const XID_LEN: usize = 4;
+const XID_LEN:    usize = 4;
+const SECS_LEN:   usize = 2;
+const FLAGS_LEN:  usize = 2;
 const CIADDR_LEN: usize = 4;
 const YIADDR_LEN: usize = 4;
+const SIADDR_LEN: usize = 4;
+const GIADDR_LEN: usize = 4;
 const CHADDR_LEN: usize = 16;
+const SNAME_LEN:  usize = 64;
+const FILE_LEN:   usize = 128;
 
 // TODO: options は一旦無し
 #[derive(Debug)]
 pub struct DhcpPacket {
-    op: Op,
-    htype: Htype,
-    hlen: u8,
-    xid: Octets<XID_LEN>,
+    op:     Op,
+    htype:  Htype,
+    hlen:   u8,
+    hops:   u8,
+    xid:    Octets<XID_LEN>,
+    secs:   Octets<SECS_LEN>,
+    flags:  Octets<FLAGS_LEN>,
     ciaddr: Octets<CIADDR_LEN>,
     yiaddr: Octets<YIADDR_LEN>,
-    chaddr: Octets<CHADDR_LEN>
+    siaddr: Octets<SIADDR_LEN>,
+    giaddr: Octets<GIADDR_LEN>,
+    chaddr: Octets<CHADDR_LEN>,
+    sname:  Octets<SNAME_LEN>,
+    file:   Octets<FILE_LEN>
 }
 
 impl DhcpPacket {
     pub fn new() -> Self {
-        let mut xid = Octets::new();
         Self {
-            op: Op::BOOTREQUEST,
-            htype: Htype::Ethernet,
-            hlen: 0,
-            xid: xid,
+            op:     Op::BOOTREQUEST,
+            htype:  Htype::Ethernet,
+            hlen:   0,
+            hops:   0,
+            xid:    Octets::new(),
+            secs:   Octets::new(),
+            flags:  Octets::new(),
             ciaddr: Octets::new(),
             yiaddr: Octets::new(),
-            chaddr: Octets::new()
+            siaddr: Octets::new(),
+            giaddr: Octets::new(),
+            chaddr: Octets::new(),
+            sname:  Octets::new(),
+            file:   Octets::new()
         }
     }
 
