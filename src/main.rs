@@ -16,6 +16,7 @@ fn build_discover() {
     dhcp_packet.set_op(Op::BOOTREQUEST);
     dhcp_packet.set_htype(Htype::Ethernet);
     dhcp_packet.calc_and_set_hlen();
+    dhcp_packet.set_hops(0);
 
     println!("{:?}", dhcp_packet);
 }

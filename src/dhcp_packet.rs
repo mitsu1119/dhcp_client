@@ -59,6 +59,7 @@ impl DhcpPacket {
             Htype::Ethernet => 6,
         }
     }
+    pub fn set_hops(&mut self, hop: u8) { self.hops = hops; }
 }
 
 #[repr(u8)]
