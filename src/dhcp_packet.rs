@@ -1,17 +1,17 @@
 #[path = "./octets.rs"]
-mod octets;
+pub mod octets;
 use octets::Octets;
 
-const XID_LEN:    usize = 4;
-const SECS_LEN:   usize = 2;
-const FLAGS_LEN:  usize = 2;
-const CIADDR_LEN: usize = 4;
-const YIADDR_LEN: usize = 4;
-const SIADDR_LEN: usize = 4;
-const GIADDR_LEN: usize = 4;
-const CHADDR_LEN: usize = 16;
-const SNAME_LEN:  usize = 64;
-const FILE_LEN:   usize = 128;
+pub const XID_LEN:    usize = 4;
+pub const SECS_LEN:   usize = 2;
+pub const FLAGS_LEN:  usize = 2;
+pub const CIADDR_LEN: usize = 4;
+pub const YIADDR_LEN: usize = 4;
+pub const SIADDR_LEN: usize = 4;
+pub const GIADDR_LEN: usize = 4;
+pub const CHADDR_LEN: usize = 16;
+pub const SNAME_LEN:  usize = 64;
+pub const FILE_LEN:   usize = 128;
 
 // TODO: options は一旦無し
 #[derive(Debug)]
@@ -59,7 +59,8 @@ impl DhcpPacket {
             Htype::Ethernet => 6,
         }
     }
-    pub fn set_hops(&mut self, hop: u8) { self.hops = hops; }
+    pub fn set_hops(&mut self, hops: u8) { self.hops = hops; }
+    pub fn set_xid(&mut self, xid: Octets<XID_LEN>) { self.xid = xid; }
 }
 
 #[repr(u8)]

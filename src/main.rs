@@ -4,10 +4,15 @@ use log::*;
 use std::error::Error;
 use anyhow::{self};
 
+use rand::prelude::*;
+use rand_chacha::ChaCha20Rng;
+
 use std::net::UdpSocket;
 
 mod dhcp_packet;
 use dhcp_packet::*;
+
+use crate::octets::Octets;
 
 // DHCP DISCOVER のパケットを構築
 fn build_discover() {
@@ -17,6 +22,13 @@ fn build_discover() {
     dhcp_packet.set_htype(Htype::Ethernet);
     dhcp_packet.calc_and_set_hlen();
     dhcp_packet.set_hops(0);
+
+    let mut csprng = ChaCha20Rng::from_entropy();
+    let mut xid_array = [0u8; XID_LEN];
+    csprng.fill_bytes(&mut xid_array);
+    let mut xid = Octets::<XID_LEN>::new();
+    xid.set(xid_array);
+    dhcp_packet.set_xid(xid);
 
     println!("{:?}", dhcp_packet);
 }
