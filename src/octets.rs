@@ -14,3 +14,12 @@ impl<const N: usize> Octets<N> {
         self.data = data;
     }
 }
+
+impl Octets<2> {
+    pub fn from_num(&mut self, val: u16) {
+        let mut num = val;
+        self.data[1] = (num % 0xff) as u8;
+        num /= 0xff;
+        self.data[0] = (num % 0xff) as u8;
+    }
+}
