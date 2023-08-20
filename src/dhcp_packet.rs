@@ -75,7 +75,7 @@ pub enum Op {
 #[repr(u8)]
 #[derive(Debug)]
 pub enum Htype {
-    Ethernet
+    Ethernet = 1
 }
 
 #[derive(Debug)]
