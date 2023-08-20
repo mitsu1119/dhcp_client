@@ -41,7 +41,7 @@ impl DhcpPacket {
             hops:   0,
             xid:    Octets::new(),
             secs:   Octets::new(),
-            flags:  Octets::new(),
+            flags:  Flags::Unicast,
             ciaddr: Octets::new(),
             yiaddr: Octets::new(),
             siaddr: Octets::new(),
@@ -62,6 +62,7 @@ impl DhcpPacket {
     pub fn set_hops(&mut self, hops: u8) { self.hops = hops; }
     pub fn set_xid(&mut self, xid: Octets<XID_LEN>) { self.xid = xid; }
     pub fn set_secs(&mut self, secs: Octets<SECS_LEN>) { self.secs = secs; }
+    pub fn set_flags(&mut self, flags: Octets<FLAGS_LEN>) { self.flags = flags; }
 }
 
 #[repr(u8)]
@@ -75,4 +76,12 @@ pub enum Op {
 #[derive(Debug)]
 pub enum Htype {
     Ethernet
+}
+
+#[derive(Debug)]
+pub struct Flags {}
+
+impl Flags {
+    pub const Unicast: Octets<FLAGS_LEN> = Octets::<FLAGS_LEN> { data: [0u8; FLAGS_LEN] };
+    pub const Broadcast: Octets<FLAGS_LEN> = Octets::<FLAGS_LEN> { data: [0b01000000, 0] };
 }

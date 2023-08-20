@@ -2,7 +2,7 @@ type Octet = Octets<1>;
 
 #[derive(Debug)]
 pub struct Octets<const N: usize> {
-    data: [u8; N]
+    pub data: [u8; N]
 }
 
 impl<const N: usize> Octets<N> {

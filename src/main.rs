@@ -34,6 +34,8 @@ fn build_discover() {
     secs.from_num(0);
     dhcp_packet.set_secs(secs);
 
+    dhcp_packet.set_flags(Flags::Broadcast);
+
     println!("{:?}", dhcp_packet);
 }
 
