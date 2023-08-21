@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, str};
 
 use log::*;
 use std::error::Error;
@@ -18,7 +18,7 @@ use mac_address::*;
 use crate::octets::Octets;
 
 // DHCP DISCOVER のパケットを構築
-fn build_discover(interface_name: &str) {
+fn build_discover(interface_name: &str) -> Vec<u8>{
     let mut dhcp_packet = DhcpPacket::new();
 
     dhcp_packet.set_op(Op::BOOTREQUEST);
@@ -53,6 +53,8 @@ fn build_discover(interface_name: &str) {
 
     println!("{:?}", dhcp_packet);
     println!("{:?}", dhcp_packet.get_bytes());
+
+    dhcp_packet.get_bytes().to_vec()
 }
 
 // 利用可能な DHCP サーバを探す
@@ -69,11 +71,20 @@ fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
     };
 
     // DHCP DISCOVER を構築
-    build_discover(interface_name);
+    let payload = build_discover(interface_name);
 
     // DHCP DISCOVER を送信
+    println!("{:?}", payload.len());
+    socket.send_to(&payload, address);
 
     // サーバからの返答を受信
+    const MAX_BUFFER: usize = 1024;
+    let mut buffer = [0u8; MAX_BUFFER];
+    socket.recv_from(&mut buffer)?;
+    print!("retn {}", str::from_utf8(&mut buffer)?);
+
+    loop {
+    }
 
     Ok(())
 }
