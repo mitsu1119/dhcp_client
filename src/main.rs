@@ -44,7 +44,12 @@ fn build_discover(interface_name: &str) {
     dhcp_packet.set_giaddr(Octets::<CIADDR_LEN>::new());
 
     let mac_address = get_mac(interface_name).expect("Could not get mac address");
-    println!("{:?}", mac_address);
+    let chaddr_padding = [0u8; 10];
+    let chaddr_vec: Vec<u8> = mac_address.iter().chain(&chaddr_padding).map(|&x| x).collect();
+    let chaddr_array: [u8; CHADDR_LEN] = chaddr_vec.try_into().expect("Invalid mac address syntax");
+    let mut chaddr = Octets::<CHADDR_LEN>::new();
+    chaddr.set(chaddr_array);
+    println!("{:?}", chaddr);
 
     println!("{:?}", dhcp_packet);
 }

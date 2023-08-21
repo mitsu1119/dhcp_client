@@ -67,6 +67,7 @@ impl DhcpPacket {
     pub fn set_yiaddr(&mut self, yiaddr: Octets<CIADDR_LEN>) { self.yiaddr = yiaddr; }
     pub fn set_siaddr(&mut self, siaddr: Octets<CIADDR_LEN>) { self.siaddr = siaddr; }
     pub fn set_giaddr(&mut self, giaddr: Octets<CIADDR_LEN>) { self.giaddr = giaddr; }
+    pub fn set_chaddr(&mut self, chaddr: Octets<CHADDR_LEN>) { self.chaddr = chaddr; }
 }
 
 #[repr(u8)]
