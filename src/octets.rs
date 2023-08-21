@@ -23,3 +23,16 @@ impl Octets<2> {
         self.data[0] = (num % 0xff) as u8;
     }
 }
+
+impl Octets<4> {
+    pub fn from_num(&mut self, val: u32) {
+        let mut num = val;
+        self.data[3] = (num % 0xff) as u8;
+        num /= 0xff;
+        self.data[2] = (num % 0xff) as u8;
+        num /= 0xff;
+        self.data[1] = (num % 0xff) as u8;
+        num /= 0xff;
+        self.data[0] = (num % 0xff) as u8;
+    }
+}
