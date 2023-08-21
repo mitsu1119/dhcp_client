@@ -12,6 +12,7 @@ pub const GIADDR_LEN: usize = 4;
 pub const CHADDR_LEN: usize = 16;
 pub const SNAME_LEN:  usize = 64;
 pub const FILE_LEN:   usize = 128;
+pub const ALL_LEN:    usize = 4 + XID_LEN + SECS_LEN + FLAGS_LEN + CIADDR_LEN + YIADDR_LEN + SIADDR_LEN + GIADDR_LEN + CHADDR_LEN + SNAME_LEN + FILE_LEN;
 
 // TODO: options は一旦無し
 #[derive(Debug)]
@@ -52,6 +53,11 @@ impl DhcpPacket {
         }
     }
 
+    pub fn get_bytes(&self) -> [u8; ALL_LEN] {
+        let res = [self.op.get_bytes(), self.htype.get_bytes(), &[self.hlen], &[self.hops], self.xid.get_bytes(), self.secs.get_bytes(), self.flags.get_bytes(), self.ciaddr.get_bytes(), self.yiaddr.get_bytes(), self.siaddr.get_bytes(), self.giaddr.get_bytes(), self.chaddr.get_bytes(), self.sname.get_bytes(), self.file.get_bytes()].concat().try_into().expect("error");
+        res
+    }
+
     pub fn set_op(&mut self, op: Op) { self.op = op; }
     pub fn set_htype(&mut self, htype: Htype) { self.htype = htype; }
     pub fn calc_and_set_hlen(&mut self) { 
@@ -77,10 +83,27 @@ pub enum Op {
     BOOTREPLY   = 2
 }
 
+impl Op {
+    fn get_bytes(&self) -> &[u8] {
+        match self {
+            Op::BOOTREQUEST => &[1u8],
+            Op::BOOTREPLY => &[2u8],
+        }
+    }
+}
+
 #[repr(u8)]
 #[derive(Debug)]
 pub enum Htype {
     Ethernet = 1
+}
+
+impl Htype {
+    fn get_bytes(&self) -> &[u8] {
+        match self {
+            Htype::Ethernet => &[1u8]
+        }
+    }
 }
 
 #[derive(Debug)]

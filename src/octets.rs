@@ -13,6 +13,10 @@ impl<const N: usize> Octets<N> {
     pub fn set(&mut self, data: [u8; N]) {
         self.data = data;
     }
+
+    pub fn get_bytes(&self) -> &[u8] {
+        &self.data
+    }
 }
 
 impl Octets<2> {

@@ -49,9 +49,10 @@ fn build_discover(interface_name: &str) {
     let chaddr_array: [u8; CHADDR_LEN] = chaddr_vec.try_into().expect("Invalid mac address syntax");
     let mut chaddr = Octets::<CHADDR_LEN>::new();
     chaddr.set(chaddr_array);
-    println!("{:?}", chaddr);
+    dhcp_packet.set_chaddr(chaddr);
 
     println!("{:?}", dhcp_packet);
+    println!("{:?}", dhcp_packet.get_bytes());
 }
 
 // 利用可能な DHCP サーバを探す
