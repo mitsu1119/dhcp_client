@@ -12,10 +12,13 @@ use std::net::UdpSocket;
 mod dhcp_packet;
 use dhcp_packet::*;
 
+mod mac_address;
+use mac_address::*;
+
 use crate::octets::Octets;
 
 // DHCP DISCOVER のパケットを構築
-fn build_discover() {
+fn build_discover(interface_name: &str) {
     let mut dhcp_packet = DhcpPacket::new();
 
     dhcp_packet.set_op(Op::BOOTREQUEST);
@@ -40,11 +43,14 @@ fn build_discover() {
     dhcp_packet.set_siaddr(Octets::<CIADDR_LEN>::new());
     dhcp_packet.set_giaddr(Octets::<CIADDR_LEN>::new());
 
+    let mac_address = get_mac(interface_name).expect("Could not get mac address");
+    println!("{:?}", mac_address);
+
     println!("{:?}", dhcp_packet);
 }
 
 // 利用可能な DHCP サーバを探す
-fn dhcp_discover() -> anyhow::Result<()> {
+fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
     // 67 番ポートにブロードキャスト
     const address: &str = "0.0.0.0:67";
 
@@ -57,7 +63,7 @@ fn dhcp_discover() -> anyhow::Result<()> {
     };
 
     // DHCP DISCOVER を構築
-    build_discover();
+    build_discover(interface_name);
 
     // DHCP DISCOVER を送信
 
@@ -70,5 +76,12 @@ fn main() {
     env::set_var("RUST_LOG", "debug");
     env_logger::init();
 
-    dhcp_discover();
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        error!("Please specify [interface name].");
+        std::process::exit(1);
+    }
+    let interface_name = &args[1];
+
+    dhcp_discover(interface_name);
 }
