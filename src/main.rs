@@ -69,6 +69,7 @@ fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
             std::process::exit(1);
         }
     };
+    socket.set_broadcast(true)?;
 
     // DHCP DISCOVER を構築
     let payload = build_discover(interface_name);

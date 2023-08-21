@@ -111,5 +111,5 @@ pub struct Flags {}
 
 impl Flags {
     pub const Unicast: Octets<FLAGS_LEN> = Octets::<FLAGS_LEN> { data: [0u8; FLAGS_LEN] };
-    pub const Broadcast: Octets<FLAGS_LEN> = Octets::<FLAGS_LEN> { data: [0b01000000, 0] };
+    pub const Broadcast: Octets<FLAGS_LEN> = Octets::<FLAGS_LEN> { data: [0b10000000, 0] };
 }
