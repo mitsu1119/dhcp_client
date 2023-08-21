@@ -12,9 +12,10 @@ pub const GIADDR_LEN: usize = 4;
 pub const CHADDR_LEN: usize = 16;
 pub const SNAME_LEN:  usize = 64;
 pub const FILE_LEN:   usize = 128;
-pub const ALL_LEN:    usize = 4 + XID_LEN + SECS_LEN + FLAGS_LEN + CIADDR_LEN + YIADDR_LEN + SIADDR_LEN + GIADDR_LEN + CHADDR_LEN + SNAME_LEN + FILE_LEN;
+pub const MAGICCOOKIE_LEN: usize = 4;
+pub const ALL_LEN:    usize = 4 + XID_LEN + SECS_LEN + FLAGS_LEN + CIADDR_LEN + YIADDR_LEN + SIADDR_LEN + GIADDR_LEN + CHADDR_LEN + SNAME_LEN + FILE_LEN + MAGICCOOKIE_LEN;
 
-// TODO: options は一旦無し
+// TODO: options は一旦マジッククッキーだけ
 #[derive(Debug)]
 pub struct DhcpPacket {
     op:     Op,
@@ -30,7 +31,8 @@ pub struct DhcpPacket {
     giaddr: Octets<GIADDR_LEN>,
     chaddr: Octets<CHADDR_LEN>,
     sname:  Octets<SNAME_LEN>,
-    file:   Octets<FILE_LEN>
+    file:   Octets<FILE_LEN>,
+    options:Octets<MAGICCOOKIE_LEN>
 }
 
 impl DhcpPacket {
@@ -49,12 +51,13 @@ impl DhcpPacket {
             giaddr: Octets::new(),
             chaddr: Octets::new(),
             sname:  Octets::new(),
-            file:   Octets::new()
+            file:   Octets::new(),
+            options: MAGICCOOKIE
         }
     }
 
     pub fn get_bytes(&self) -> [u8; ALL_LEN] {
-        let res = [self.op.get_bytes(), self.htype.get_bytes(), &[self.hlen], &[self.hops], self.xid.get_bytes(), self.secs.get_bytes(), self.flags.get_bytes(), self.ciaddr.get_bytes(), self.yiaddr.get_bytes(), self.siaddr.get_bytes(), self.giaddr.get_bytes(), self.chaddr.get_bytes(), self.sname.get_bytes(), self.file.get_bytes()].concat().try_into().expect("error");
+        let res = [self.op.get_bytes(), self.htype.get_bytes(), &[self.hlen], &[self.hops], self.xid.get_bytes(), self.secs.get_bytes(), self.flags.get_bytes(), self.ciaddr.get_bytes(), self.yiaddr.get_bytes(), self.siaddr.get_bytes(), self.giaddr.get_bytes(), self.chaddr.get_bytes(), self.sname.get_bytes(), self.file.get_bytes(), self.options.get_bytes()].concat().try_into().expect("error");
         res
     }
 
@@ -105,6 +108,8 @@ impl Htype {
         }
     }
 }
+
+pub const MAGICCOOKIE: Octets<MAGICCOOKIE_LEN> = Octets::<MAGICCOOKIE_LEN> { data: [0x63, 0x82, 0x53, 0x63] };
 
 #[derive(Debug)]
 pub struct Flags {}
