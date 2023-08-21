@@ -35,6 +35,10 @@ fn build_discover() {
     dhcp_packet.set_secs(secs);
 
     dhcp_packet.set_flags(Flags::Broadcast);
+    dhcp_packet.set_ciaddr(Octets::<CIADDR_LEN>::new());
+    dhcp_packet.set_yiaddr(Octets::<CIADDR_LEN>::new());
+    dhcp_packet.set_siaddr(Octets::<CIADDR_LEN>::new());
+    dhcp_packet.set_giaddr(Octets::<CIADDR_LEN>::new());
 
     println!("{:?}", dhcp_packet);
 }

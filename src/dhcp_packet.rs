@@ -63,6 +63,10 @@ impl DhcpPacket {
     pub fn set_xid(&mut self, xid: Octets<XID_LEN>) { self.xid = xid; }
     pub fn set_secs(&mut self, secs: Octets<SECS_LEN>) { self.secs = secs; }
     pub fn set_flags(&mut self, flags: Octets<FLAGS_LEN>) { self.flags = flags; }
+    pub fn set_ciaddr(&mut self, ciaddr: Octets<CIADDR_LEN>) { self.ciaddr = ciaddr; }
+    pub fn set_yiaddr(&mut self, yiaddr: Octets<CIADDR_LEN>) { self.yiaddr = yiaddr; }
+    pub fn set_siaddr(&mut self, siaddr: Octets<CIADDR_LEN>) { self.siaddr = siaddr; }
+    pub fn set_giaddr(&mut self, giaddr: Octets<CIADDR_LEN>) { self.giaddr = giaddr; }
 }
 
 #[repr(u8)]
