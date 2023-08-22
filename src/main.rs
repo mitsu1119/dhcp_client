@@ -8,6 +8,7 @@ use rand::prelude::*;
 use rand_chacha::ChaCha20Rng;
 
 use std::net::UdpSocket;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 mod dhcp_packet;
 use dhcp_packet::*;
@@ -60,23 +61,18 @@ fn build_discover(interface_name: &str) -> Vec<u8>{
 // 利用可能な DHCP サーバを探す
 fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
     // 67 番ポートにブロードキャスト
-    const address: &str = "0.0.0.0:67";
-
-    let socket = match UdpSocket::bind("127.0.0.1:68") {
-        Ok(v) => v,
-        Err(e) => {
-            error!("connect: {}", e);
-            std::process::exit(1);
-        }
-    };
-    socket.set_broadcast(true)?;
+    let client_address = Ipv4Addr::new(0, 0, 0, 0);
+    let server_address = Ipv4Addr::new(255, 255, 255, 255);
 
     // DHCP DISCOVER を構築
     let payload = build_discover(interface_name);
 
     // DHCP DISCOVER を送信
     println!("{:?}", payload.len());
-    socket.send_to(&payload, address);
+    // socket.send_to(&payload, address);
+
+    println!("{:?}", pay);
+    socket.send_to(pay, address).expect("cannnot send");
 
     // サーバからの返答を受信
     const MAX_BUFFER: usize = 1024;
