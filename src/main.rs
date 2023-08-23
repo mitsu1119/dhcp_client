@@ -63,25 +63,28 @@ fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
     // 67 番ポートにブロードキャスト
     let client_address = Ipv4Addr::new(0, 0, 0, 0);
     let server_address = Ipv4Addr::new(255, 255, 255, 255);
+    let client_socket = SocketAddr::new(IpAddr::V4(client_address), 68);
+    let server_socket = SocketAddr::new(IpAddr::V4(server_address), 67);
+    let socket = UdpSocket::bind(client_socket).expect("cannnot bind");
+    let address = server_socket;
+    /*
+    let address: &str = "255.255.255.255:67";
+    let mut socket = match UdpSocket::bind("0.0.0.0:32323") {
+        Ok(v) => v,
+        Err(e) => {
+            error!("connect: {}", e);
+            std::process::exit(1);
+        }
+    };
+    */
+    socket.set_broadcast(true).expect("failed to set broadcast");
 
     // DHCP DISCOVER を構築
     let payload = build_discover(interface_name);
 
     // DHCP DISCOVER を送信
     println!("{:?}", payload.len());
-    // socket.send_to(&payload, address);
-
-    println!("{:?}", pay);
-    socket.send_to(pay, address).expect("cannnot send");
-
-    // サーバからの返答を受信
-    const MAX_BUFFER: usize = 1024;
-    let mut buffer = [0u8; MAX_BUFFER];
-    socket.recv_from(&mut buffer)?;
-    print!("retn {}", str::from_utf8(&mut buffer)?);
-
-    loop {
-    }
+    socket.send_to(&payload, address);
 
     Ok(())
 }
@@ -90,12 +93,15 @@ fn main() {
     env::set_var("RUST_LOG", "debug");
     env_logger::init();
 
+    /*
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
         error!("Please specify [interface name].");
         std::process::exit(1);
     }
     let interface_name = &args[1];
+    */
+    let interface_name = "enp0s31f6";
 
     dhcp_discover(interface_name);
 }
