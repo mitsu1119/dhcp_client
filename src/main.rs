@@ -10,6 +10,12 @@ use rand_chacha::ChaCha20Rng;
 use std::net::UdpSocket;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+use pnet::packet::Packet;
+use pnet::datalink;
+use pnet::datalink::Channel::Ethernet;
+use pnet::packet::ethernet::{MutableEthernetPacket, EtherTypes};
+use pnet::util::MacAddr;
+
 mod dhcp_packet;
 use dhcp_packet::*;
 
@@ -84,7 +90,7 @@ fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
 
     // DHCP DISCOVER を送信
     println!("{:?}", payload.len());
-    socket.send_to(&payload, address);
+    // socket.send_to(&payload, address).expect("uwaaaa");
 
     Ok(())
 }
@@ -102,6 +108,29 @@ fn main() {
     let interface_name = &args[1];
     */
     let interface_name = "enp0s31f6";
+    let interfaces = datalink::interfaces();
+    let interface = interfaces
+        .into_iter()
+        .find(|iface| iface.name == *interface_name)
+        .expect("Failed to get interface");
 
-    dhcp_discover(interface_name);
+    // dhcp_discover(interface_name);
+
+    // ブロードキャストテスト
+    let (mut tx, mut rx) = match datalink::channel(&interface, Default::default()) {
+        Ok(Ethernet(tx, rx)) => (tx, rx),
+        Ok(_) => panic!("Unsupported channel type"),
+        Err(e) => panic!("Failed to create datalink channel {}", e)
+    };
+
+    let mut ethernet_buffer = [0u8; 42];
+    let mut ethernet_packet = MutableEthernetPacket::new(&mut ethernet_buffer).unwrap();
+
+
+    ethernet_packet.set_destination(MacAddr::broadcast());
+    ethernet_packet.set_source(interface.mac.unwrap());
+    ethernet_packet.set_ethertype(EtherTypes::Arp);
+
+    println!("{:?}", ethernet_packet);
+    tx.send_to(ethernet_packet.packet(), None).expect("wow");
 }
