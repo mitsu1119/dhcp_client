@@ -22,6 +22,8 @@ use dhcp_packet::*;
 mod mac_address;
 use mac_address::*;
 
+mod broadcast;
+
 use crate::octets::Octets;
 
 // DHCP DISCOVER のパケットを構築
@@ -69,7 +71,7 @@ fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
     // 67 番ポートにブロードキャスト
     let client_address = Ipv4Addr::new(0, 0, 0, 0);
     let server_address = Ipv4Addr::new(255, 255, 255, 255);
-    let client_socket = SocketAddr::new(IpAddr::V4(client_address), 68);
+    let client_socket = SocketAddr::new(IpAddr::V4(client_address), 32323);
     let server_socket = SocketAddr::new(IpAddr::V4(server_address), 67);
     let socket = UdpSocket::bind(client_socket).expect("cannnot bind");
     let address = server_socket;
@@ -90,7 +92,7 @@ fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
 
     // DHCP DISCOVER を送信
     println!("{:?}", payload.len());
-    // socket.send_to(&payload, address).expect("uwaaaa");
+    socket.send_to(&payload, address).expect("uwaaaa");
 
     Ok(())
 }
@@ -114,23 +116,8 @@ fn main() {
         .find(|iface| iface.name == *interface_name)
         .expect("Failed to get interface");
 
+    let payload: Vec<u8> = vec![0x32u8; 16];
+    broadcast::send_broadcast(32323, 67, &interface, &payload);
+
     // dhcp_discover(interface_name);
-
-    // ブロードキャストテスト
-    let (mut tx, mut rx) = match datalink::channel(&interface, Default::default()) {
-        Ok(Ethernet(tx, rx)) => (tx, rx),
-        Ok(_) => panic!("Unsupported channel type"),
-        Err(e) => panic!("Failed to create datalink channel {}", e)
-    };
-
-    let mut ethernet_buffer = [0u8; 42];
-    let mut ethernet_packet = MutableEthernetPacket::new(&mut ethernet_buffer).unwrap();
-
-
-    ethernet_packet.set_destination(MacAddr::broadcast());
-    ethernet_packet.set_source(interface.mac.unwrap());
-    ethernet_packet.set_ethertype(EtherTypes::Arp);
-
-    println!("{:?}", ethernet_packet);
-    tx.send_to(ethernet_packet.packet(), None).expect("wow");
 }
