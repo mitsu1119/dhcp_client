@@ -62,6 +62,22 @@ impl MutableDhcpPacket {
     pub fn minimum_packet_size() -> usize {
         237
     }
+
+    pub fn set_op(&mut self, op: Op) { self.op = op; }
+    pub fn set_htype(&mut self, htype: HType) { self.htype = htype; }
+    pub fn set_hlen(&mut self, hlen: u8) { self.hlen = hlen; }
+    pub fn set_hops(&mut self, hops: u8) { self.hops = hops; }
+    pub fn set_xid(&mut self, xid: u32) { self.xid = xid; }
+    pub fn set_secs(&mut self, secs: u16) { self.secs = secs; }
+    pub fn set_flags(&mut self, flags: u16) { self.flags = flags; }
+    pub fn set_ciaddr(&mut self, ciaddr: u32) { self.ciaddr = ciaddr; }
+    pub fn set_yiaddr(&mut self, yiaddr: u32) { self.yiaddr = yiaddr; }
+    pub fn set_siaddr(&mut self, siaddr: u32) { self.siaddr = siaddr; }
+    pub fn set_giaddr(&mut self, giaddr: u32) { self.giaddr = giaddr; }
+    pub fn set_chaddr(&mut self, chaddr: [u8; 16]) { self.chaddr = chaddr.to_vec(); }
+    pub fn set_sname(&mut self, sname: [u8; 64]) { self.sname = sname.to_vec(); }
+    pub fn set_file(&mut self, file: [u8; 128]) { self.file = file.to_vec(); }
+    pub fn set_options(&mut self, options: u8) { self.options = options; }
 }
 
 #[repr(u8)]
