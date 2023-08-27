@@ -47,13 +47,13 @@ pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     chaddr[5] = mac.5;
     discover_packet.set_chaddr(chaddr);
 
-    discover_packet.set_options(Options::MAGICCOOKIE);
-
     discover_packet
 }
 
 pub fn send_discover(interface: &NetworkInterface) {
     let discover_packet = assemble_discover(interface);
+
+    println!("{:?}", discover_packet);
 
     send_broadcast(32323, 67, interface, &discover_packet.packet());
 }
