@@ -113,7 +113,7 @@ fn main() {
 
     let payload: Vec<u8> = vec![0x32u8; 16];
 
-    dhcp::send_discover();
+    dhcp::send_discover(&interface);
 
     // dhcp_discover(interface_name);
 }
