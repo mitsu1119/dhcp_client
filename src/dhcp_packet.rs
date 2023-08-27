@@ -89,3 +89,8 @@ pub struct HType {}
 impl HType {
     pub const Ethernet: u8 = 1;
 }
+
+pub struct Options {}
+impl Options {
+    pub const MAGICCOOKIE: u32 = 0x63825363;
+}

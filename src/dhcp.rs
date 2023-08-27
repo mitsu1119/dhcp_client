@@ -1,6 +1,6 @@
 #[path = "./dhcp_packet.rs"]
 mod dhcp_packet;
-use dhcp_packet::{Op, HType, MutableDhcpPacket};
+use dhcp_packet::{Op, HType, Options, MutableDhcpPacket};
 
 use pnet::datalink::NetworkInterface;
 
@@ -20,7 +20,7 @@ pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     csprng.fill_bytes(&mut xid_array);
     discover_packet.set_xid(0x1000 * (xid_array[0] as u32) + 0x100 * (xid_array[1] as u32) + 0x10 * (xid_array[2] as u32) + xid_array[3] as u32);
 
-    discover_packet.set_options(0x63825363);
+    discover_packet.set_options(Options::MAGICCOOKIE);
 
     discover_packet
 }
