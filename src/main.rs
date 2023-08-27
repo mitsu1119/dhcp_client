@@ -19,14 +19,10 @@ use pnet::util::MacAddr;
 mod dhcp_packet;
 use dhcp_packet::*;
 
-mod mac_address;
-use mac_address::*;
-
 mod broadcast;
 
-use crate::octets::Octets;
-
 // DHCP DISCOVER のパケットを構築
+/*
 fn build_discover(interface_name: &str) -> Vec<u8>{
     let mut dhcp_packet = DhcpPacket::new();
 
@@ -96,6 +92,7 @@ fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
 
     Ok(())
 }
+*/
 
 fn main() {
     env::set_var("RUST_LOG", "debug");

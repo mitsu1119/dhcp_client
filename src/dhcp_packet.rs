@@ -1,8 +1,9 @@
 // TODO: options は一旦マジッククッキーだけ
 #[derive(Debug)]
-pub struct MutableDhcpPacket {
+pub struct MutableDhcpPacket<'a> {
+    buffer: &'a mut Vec<u8>,
     op:     Op,
-    htype:  Htype,
+    htype:  HType,
     hlen:   u8,
     hops:   u8,
     xid:    u32,
@@ -18,7 +19,10 @@ pub struct MutableDhcpPacket {
     options:u8
 }
 
-impl MutableDhcpPacket {
+impl MutableDhcpPacket<'_> {
+    fn new(buffer: &mut Vec<u8>) {
+    }
+
     fn minimum_packet_size() -> usize {
         237
     }
