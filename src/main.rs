@@ -1,22 +1,4 @@
-use std::{env, str};
-
-use log::*;
-use std::error::Error;
-use anyhow::{self};
-
-use rand::prelude::*;
-use rand_chacha::ChaCha20Rng;
-
-use std::net::UdpSocket;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-use pnet::packet::Packet;
-use pnet::datalink;
-use pnet::datalink::Channel::Ethernet;
-use pnet::packet::ethernet::{MutableEthernetPacket, EtherTypes};
-use pnet::util::MacAddr;
-
-mod broadcast;
+use std::env;
 mod dhcp;
 
 // DHCP DISCOVER のパケットを構築
@@ -93,9 +75,6 @@ fn dhcp_discover(interface_name: &str) -> anyhow::Result<()> {
 */
 
 fn main() {
-    env::set_var("RUST_LOG", "debug");
-    env_logger::init();
-
     /*
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
@@ -105,15 +84,8 @@ fn main() {
     let interface_name = &args[1];
     */
     let interface_name = "enp0s31f6";
-    let interfaces = datalink::interfaces();
-    let interface = interfaces
-        .into_iter()
-        .find(|iface| iface.name == *interface_name)
-        .expect("Failed to get interface");
 
-    let payload: Vec<u8> = vec![0x32u8; 16];
-
-    dhcp::send_discover(&interface);
+    dhcp::run_client(interface_name);
 
     // dhcp_discover(interface_name);
 }

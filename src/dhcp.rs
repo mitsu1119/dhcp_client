@@ -2,10 +2,23 @@
 mod dhcp_packet;
 use dhcp_packet::{Op, HType, Options, MutableDhcpPacket};
 
+use pnet::datalink;
 use pnet::datalink::NetworkInterface;
 
 use rand::prelude::*;
 use rand_chacha::ChaCha20Rng;
+
+pub fn run_client(interface_name: &str) {
+    let interfaces = datalink::interfaces();
+    let interface = interfaces
+        .into_iter()
+        .find(|iface| iface.name == *interface_name)
+        .expect("Failed to get interface");
+
+    let payload: Vec<u8> = vec![0x32u8; 16];
+
+    send_discover(&interface);
+}
 
 pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     let mut discover_buffer: Vec<u8> = vec![0; MutableDhcpPacket::minimum_packet_size()];
