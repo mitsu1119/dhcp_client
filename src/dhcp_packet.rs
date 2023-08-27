@@ -59,7 +59,7 @@ impl MutableDhcpPacket {
     }
 
     pub fn minimum_packet_size() -> usize {
-        237
+        240
     }
 
     pub fn set_op(&mut self, op: u8) { self.op = op; }

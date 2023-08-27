@@ -2,6 +2,10 @@
 mod dhcp_packet;
 use dhcp_packet::{Op, HType, Options, MutableDhcpPacket};
 
+#[path = "./broadcast.rs"]
+mod broadcast;
+use broadcast::send_broadcast;
+
 use pnet::datalink;
 use pnet::datalink::NetworkInterface;
 
@@ -51,6 +55,5 @@ pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
 pub fn send_discover(interface: &NetworkInterface) {
     let discover_packet = assemble_discover(interface);
 
-    println!("{:?}", discover_packet);
-    println!("{:?}", discover_packet.packet());
+    send_broadcast(32323, 67, interface, &discover_packet.packet());
 }
