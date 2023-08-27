@@ -11,10 +11,27 @@ use pnet::packet::ipv4;
 use pnet::packet::ipv4::MutableIpv4Packet;
 use std::net::Ipv4Addr;
 
+use pnet::packet::udp;
+use pnet::packet::udp::MutableUdpPacket;
+
+/* UDP で payload の内容の ipv4 ブロードキャストを送る */
+pub fn send_broadcast(src_port: u16, dest_port: u16, interface: &NetworkInterface, payload: &Vec<u8>) {
+    let mut udp_buffer: Vec<u8> = vec![0; MutableUdpPacket::minimum_packet_size() + payload.len()];
+    let mut udp_packet = MutableUdpPacket::new(&mut udp_buffer).unwrap();
+
+    udp_packet.set_source(src_port);
+    udp_packet.set_destination(dest_port);
+    udp_packet.set_length((MutableUdpPacket::minimum_packet_size() + payload.len()).try_into().unwrap());
+    udp_packet.set_checksum(udp::ipv4_checksum(&udp_packet.to_immutable(), &Ipv4Addr::new(0, 0, 0, 0), &Ipv4Addr::new(255, 255, 255, 255)));
+    udp_packet.set_payload(payload);
+
+    send_broadcast_ipv4(interface, &udp_packet.packet().to_vec());
+}
+
 /* レイヤ 3 で payload の内容のブロードキャストを送る */
 /* IPv4 のみ対応 */
-pub fn send_broadcast(src_port: u16, dest_port: u16, interface: &NetworkInterface, payload: &Vec<u8>) {
-    let mut ipv4_buffer: Vec<u8> = vec![0; ipv4::MutableIpv4Packet::minimum_packet_size() + payload.len()];
+pub fn send_broadcast_ipv4(interface: &NetworkInterface, payload: &Vec<u8>) {
+    let mut ipv4_buffer: Vec<u8> = vec![0; MutableIpv4Packet::minimum_packet_size() + payload.len()];
     let mut ipv4_packet = MutableIpv4Packet::new(&mut ipv4_buffer).unwrap();
 
     ipv4_packet.set_version(4);
