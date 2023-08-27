@@ -76,6 +76,7 @@ impl MutableDhcpPacket {
     pub fn set_chaddr(&mut self, chaddr: [u8; 16]) { self.chaddr = chaddr.to_vec(); }
     pub fn set_sname(&mut self, sname: [u8; 64]) { self.sname = sname.to_vec(); }
     pub fn set_file(&mut self, file: [u8; 128]) { self.file = file.to_vec(); }
+    pub fn add_options(&mut self, option: Vec<u8>) { self.options.push(option); }
 }
 
 pub struct Op {}
@@ -91,5 +92,12 @@ impl HType {
 
 pub struct Options {}
 impl Options {
-    pub const MAGICCOOKIE: u32 = 0x63825363;
+    // magic cookie
+    pub const MAGICCOOKIE: [u8; 4] = [0x63, 0x82, 0x53, 0x63];
+
+    // dhcp message type
+    pub const DHCPDISCOVER: [u8; 3] = [0x35, 0x01, 0x01];
+    
+    // end
+    pub const END: [u8; 1] = [0xff];
 }

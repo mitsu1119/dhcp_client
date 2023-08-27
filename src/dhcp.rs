@@ -47,6 +47,10 @@ pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     chaddr[5] = mac.5;
     discover_packet.set_chaddr(chaddr);
 
+    discover_packet.add_options(Options::MAGICCOOKIE.to_vec());
+    discover_packet.add_options(Options::DHCPDISCOVER.to_vec());
+    discover_packet.add_options(Options::END.to_vec());
+
     discover_packet
 }
 
@@ -54,6 +58,7 @@ pub fn send_discover(interface: &NetworkInterface) {
     let discover_packet = assemble_discover(interface);
 
     println!("{:?}", discover_packet);
+    println!("{:?}", discover_packet.packet());
 
     send_broadcast(32323, 67, interface, &discover_packet.packet());
 }
