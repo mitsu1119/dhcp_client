@@ -33,6 +33,16 @@ pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     csprng.fill_bytes(&mut xid_array);
     discover_packet.set_xid(0x1000 * (xid_array[0] as u32) + 0x100 * (xid_array[1] as u32) + 0x10 * (xid_array[2] as u32) + xid_array[3] as u32);
 
+    let mut chaddr = [0u8; 16];
+    let mac = interface.mac.unwrap();
+    chaddr[0] = mac.0;
+    chaddr[1] = mac.1;
+    chaddr[2] = mac.2;
+    chaddr[3] = mac.3;
+    chaddr[4] = mac.4;
+    chaddr[5] = mac.5;
+    discover_packet.set_chaddr(chaddr);
+
     discover_packet.set_options(Options::MAGICCOOKIE);
 
     discover_packet
