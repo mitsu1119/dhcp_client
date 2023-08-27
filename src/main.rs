@@ -16,10 +16,8 @@ use pnet::datalink::Channel::Ethernet;
 use pnet::packet::ethernet::{MutableEthernetPacket, EtherTypes};
 use pnet::util::MacAddr;
 
-mod dhcp_packet;
-use dhcp_packet::*;
-
 mod broadcast;
+mod dhcp;
 
 // DHCP DISCOVER のパケットを構築
 /*
@@ -114,7 +112,8 @@ fn main() {
         .expect("Failed to get interface");
 
     let payload: Vec<u8> = vec![0x32u8; 16];
-    broadcast::send_broadcast(32323, 67, &interface, &payload);
+
+    dhcp::send_discover();
 
     // dhcp_discover(interface_name);
 }

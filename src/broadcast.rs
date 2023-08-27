@@ -60,7 +60,6 @@ pub fn send_broadcast_l2(interface: &NetworkInterface, payload: &Vec<u8>) {
         Err(e) => panic!("Failed to create datalink channel {}", e)
     };
 
-    println!("{}", MutableEthernetPacket::minimum_packet_size());
     let mut ethernet_buffer: Vec<u8> = vec![0; MutableEthernetPacket::minimum_packet_size() + payload.len()];
     let mut ethernet_packet = MutableEthernetPacket::new(&mut ethernet_buffer).unwrap();
 
