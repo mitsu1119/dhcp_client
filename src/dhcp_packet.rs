@@ -1,8 +1,8 @@
 // TODO: options は一旦マジッククッキーだけ
 #[derive(Debug)]
 pub struct MutableDhcpPacket {
-    op:     Op,
-    htype:  HType,
+    op:     u8,
+    htype:  u8,
     hlen:   u8,
     hops:   u8,
     xid:    u32,
@@ -37,8 +37,8 @@ impl MutableDhcpPacket {
         let xid = buffer.pop().unwrap() as u32 + 0x10 * (buffer.pop().unwrap() as u32) + 0x100 * (buffer.pop().unwrap() as u32) + 0x1000 * (buffer.pop().unwrap() as u32);
         let hops = buffer.pop().unwrap();
         let hlen = buffer.pop().unwrap();
-        let htype = HType::try_from(buffer.pop().unwrap()).expect("");
-        let op = Op::try_from(buffer.pop().unwrap()).expect("");
+        let htype = buffer.pop().unwrap();
+        let op = buffer.pop().unwrap();
 
         let res = MutableDhcpPacket {
             op, htype, hlen, hops, xid, secs, flags, ciaddr, yiaddr, siaddr, giaddr, chaddr, sname, file, options
@@ -49,8 +49,8 @@ impl MutableDhcpPacket {
 
     pub fn packet(&self) -> Vec<u8> {
         let mut res = vec![];
-        res.push(self.op.get_code());
-        res.push(self.htype.get_code());
+        res.push(self.op);
+        res.push(self.htype);
         res.push(self.hlen);
         res.push(self.hops);
         res = [res, self.xid.to_be_bytes().to_vec(), self.secs.to_be_bytes().to_vec(), self.flags.to_be_bytes().to_vec(), self.ciaddr.to_be_bytes().to_vec(), self.yiaddr.to_be_bytes().to_vec(), self.siaddr.to_be_bytes().to_vec(), self.giaddr.to_be_bytes().to_vec(), self.chaddr.clone(), self.sname.clone(), self.file.clone()].concat();
@@ -63,8 +63,8 @@ impl MutableDhcpPacket {
         237
     }
 
-    pub fn set_op(&mut self, op: Op) { self.op = op; }
-    pub fn set_htype(&mut self, htype: HType) { self.htype = htype; }
+    pub fn set_op(&mut self, op: u8) { self.op = op; }
+    pub fn set_htype(&mut self, htype: u8) { self.htype = htype; }
     pub fn set_hlen(&mut self, hlen: u8) { self.hlen = hlen; }
     pub fn set_hops(&mut self, hops: u8) { self.hops = hops; }
     pub fn set_xid(&mut self, xid: u32) { self.xid = xid; }
@@ -80,70 +80,13 @@ impl MutableDhcpPacket {
     pub fn set_options(&mut self, options: u8) { self.options = options; }
 }
 
-#[repr(u8)]
-#[derive(Debug, Copy, Clone)]
-pub enum Op {
-    BOOTREQUEST,
-    BOOTREPLY
-}
-
+pub struct Op {}
 impl Op {
-    fn get_code(&self) -> u8 {
-        match self {
-            Self::BOOTREQUEST => 1,
-            Self::BOOTREPLY => 2
-        }
-    }
+    pub const BOOTREQUEST: u8 = 1;
+    pub const BOOTREPLY: u8 = 2;
 }
 
-impl TryFrom<u8> for Op {
-    type Error = &'static str;
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(Self::BOOTREQUEST),
-            1 => Ok(Self::BOOTREPLY),
-            _ => Err("Cannot convert to Op")
-        }
-    }
-}
-
-impl From<Op> for u8 {
-    fn from(value: Op) -> u8 {
-        match value {
-            Op::BOOTREQUEST => 0,
-            Op::BOOTREPLY => 1 
-        }
-    }
-}
-
-#[repr(u8)]
-#[derive(Debug, Copy, Clone)]
-pub enum HType {
-    Ethernet = 0
-}
-
+pub struct HType {}
 impl HType {
-    fn get_code(&self) -> u8 {
-        match self {
-            Self::Ethernet => 1
-        }
-    }
-}
-
-impl TryFrom<u8> for HType {
-    type Error = &'static str;
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(Self::Ethernet),
-            _ => Err("Cannot convert to HType")
-        }
-    }
-}
-
-impl From<HType> for u8 {
-    fn from(value: HType) -> u8 {
-        match value {
-            HType::Ethernet => 0
-        }
-    }
+    pub const Ethernet: u8 = 1;
 }
