@@ -47,13 +47,25 @@ impl MutableDhcpPacket {
         Ok(res)
     }
 
+    pub fn packet(&self) -> Vec<u8> {
+        let mut res = vec![];
+        res.push(self.op.get_code());
+        res.push(self.htype.get_code());
+        res.push(self.hlen);
+        res.push(self.hops);
+        res = [res, self.xid.to_be_bytes().to_vec(), self.secs.to_be_bytes().to_vec(), self.flags.to_be_bytes().to_vec(), self.ciaddr.to_be_bytes().to_vec(), self.yiaddr.to_be_bytes().to_vec(), self.siaddr.to_be_bytes().to_vec(), self.giaddr.to_be_bytes().to_vec(), self.chaddr.clone(), self.sname.clone(), self.file.clone()].concat();
+        res.push(self.options);
+
+        res
+    }
+
     pub fn minimum_packet_size() -> usize {
         237
     }
 }
 
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Op {
     BOOTREQUEST,
     BOOTREPLY
@@ -89,7 +101,7 @@ impl From<Op> for u8 {
 }
 
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum HType {
     Ethernet = 0
 }
