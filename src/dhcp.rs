@@ -8,7 +8,9 @@ pub fn assemble_discover() -> MutableDhcpPacket {
 
     discover_packet.set_op(Op::BOOTREQUEST);
     discover_packet.set_htype(HType::Ethernet);
-    discover_packet.set_hlen(discover_packet.packet().len().try_into().unwrap());
+    discover_packet.set_hlen(6);
+
+    discover_packet.set_options(0x63825363);
 
     discover_packet
 }

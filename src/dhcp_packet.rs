@@ -15,7 +15,7 @@ pub struct MutableDhcpPacket {
     chaddr: Vec<u8>,
     sname:  Vec<u8>,
     file:   Vec<u8>,
-    options:u8
+    options:u32
 }
 
 impl MutableDhcpPacket {
@@ -24,7 +24,7 @@ impl MutableDhcpPacket {
             return Err("Buffer for dhcp packet is too short.")
         }
 
-        let options = buffer.pop().unwrap();
+        let options = buffer.pop().unwrap() as u32 + 0x10 * (buffer.pop().unwrap() as u32) + 0x100 * (buffer.pop().unwrap() as u32) + 0x1000 * (buffer.pop().unwrap() as u32);
         let file = buffer.drain(108..).collect::<Vec<u8>>();
         let sname = buffer.drain(44..).collect::<Vec<u8>>();
         let chaddr = buffer.drain(28..).collect::<Vec<u8>>();
@@ -53,8 +53,7 @@ impl MutableDhcpPacket {
         res.push(self.htype);
         res.push(self.hlen);
         res.push(self.hops);
-        res = [res, self.xid.to_be_bytes().to_vec(), self.secs.to_be_bytes().to_vec(), self.flags.to_be_bytes().to_vec(), self.ciaddr.to_be_bytes().to_vec(), self.yiaddr.to_be_bytes().to_vec(), self.siaddr.to_be_bytes().to_vec(), self.giaddr.to_be_bytes().to_vec(), self.chaddr.clone(), self.sname.clone(), self.file.clone()].concat();
-        res.push(self.options);
+        res = [res, self.xid.to_be_bytes().to_vec(), self.secs.to_be_bytes().to_vec(), self.flags.to_be_bytes().to_vec(), self.ciaddr.to_be_bytes().to_vec(), self.yiaddr.to_be_bytes().to_vec(), self.siaddr.to_be_bytes().to_vec(), self.giaddr.to_be_bytes().to_vec(), self.chaddr.clone(), self.sname.clone(), self.file.clone(), self.options.to_be_bytes().to_vec()].concat();
 
         res
     }
@@ -77,7 +76,7 @@ impl MutableDhcpPacket {
     pub fn set_chaddr(&mut self, chaddr: [u8; 16]) { self.chaddr = chaddr.to_vec(); }
     pub fn set_sname(&mut self, sname: [u8; 64]) { self.sname = sname.to_vec(); }
     pub fn set_file(&mut self, file: [u8; 128]) { self.file = file.to_vec(); }
-    pub fn set_options(&mut self, options: u8) { self.options = options; }
+    pub fn set_options(&mut self, options: u32) { self.options = options; }
 }
 
 pub struct Op {}
