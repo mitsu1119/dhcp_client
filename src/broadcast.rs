@@ -1,6 +1,7 @@
 use pnet::datalink;
+use pnet::datalink::Channel;
 use pnet::datalink::Channel::Ethernet;
-use pnet::datalink::{NetworkInterface, DataLinkSender, DataLinkReceiver};
+use pnet::datalink::NetworkInterface;
 use pnet::packet::ethernet::{MutableEthernetPacket, EtherTypes, EthernetPacket};
 
 use pnet::packet::Packet;
@@ -16,19 +17,19 @@ use pnet::packet::udp::MutableUdpPacket;
 
 // ブロードキャスト用のソケット
 pub struct BroadcastSocket {
-    tx: Box<dyn DataLinkSender>,
-    rx: Box<dyn DataLinkReceiver>
+    interface: NetworkInterface,
+    channel: Channel
 }
 
 impl BroadcastSocket {
     pub fn new(interface: &NetworkInterface) -> Self {
-        let (mut tx, mut rx) = match datalink::channel(&interface, Default::default()) {
+        let (tx, rx) = match datalink::channel(&interface, Default::default()) {
             Ok(Ethernet(tx, rx)) => (tx, rx),
             Ok(_) => panic!("Unsupported channel type"),
             Err(e) => panic!("Failed to create datalink channel {}", e)
         };
 
-        BroadcastSocket { tx: tx, rx: rx }
+        BroadcastSocket { interface: interface.clone(), channel: Ethernet(tx, rx) }
     }
 
     /* UDP で payload の内容の ipv4 ブロードキャストを送る */
@@ -50,7 +51,7 @@ impl BroadcastSocket {
 
 /* UDP で interface の ipv4 ブロードキャストを受信 */
 pub fn recv_broadcast(interface: &NetworkInterface) {
-    let (mut tx, mut rx) = match datalink::channel(&interface, Default::default()) {
+    let (_, mut rx) = match datalink::channel(&interface, Default::default()) {
         Ok(Ethernet(tx, rx)) => (tx, rx),
         Ok(_) => panic!("Unsupported channel type"),
         Err(e) => panic!("Failed to create datalink channel {}", e)
@@ -100,7 +101,7 @@ pub fn send_broadcast_ipv4(interface: &NetworkInterface, payload: &Vec<u8>) {
 
 /* レイヤ 2 で payload の内容のブロードキャストを送る */
 pub fn send_broadcast_l2(interface: &NetworkInterface, payload: &Vec<u8>) {
-    let (mut tx, mut rx) = match datalink::channel(&interface, Default::default()) {
+    let (mut tx, _) = match datalink::channel(&interface, Default::default()) {
         Ok(Ethernet(tx, rx)) => (tx, rx),
         Ok(_) => panic!("Unsupported channel type"),
         Err(e) => panic!("Failed to create datalink channel {}", e)

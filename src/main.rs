@@ -1,4 +1,3 @@
-use std::env;
 mod dhcp;
 
 fn main() {
