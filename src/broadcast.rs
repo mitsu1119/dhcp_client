@@ -30,6 +30,22 @@ impl BroadcastSocket {
 
         BroadcastSocket { tx: tx, rx: rx }
     }
+
+    /* UDP で payload の内容の ipv4 ブロードキャストを送る */
+    pub fn send(&self, src_port: u16, dest_port: u16, interface: &NetworkInterface, payload: &Vec<u8>) {
+        let mut udp_buffer: Vec<u8> = vec![0; MutableUdpPacket::minimum_packet_size() + payload.len()];
+        let mut udp_packet = MutableUdpPacket::new(&mut udp_buffer).unwrap();
+
+        udp_packet.set_source(src_port);
+        udp_packet.set_destination(dest_port);
+        udp_packet.set_length((MutableUdpPacket::minimum_packet_size() + payload.len()).try_into().unwrap());
+        udp_packet.set_payload(payload);
+        udp_packet.set_checksum(0);
+
+        send_broadcast_ipv4(interface, &udp_packet.packet().to_vec());
+
+        udp_packet.set_checksum(udp::ipv4_checksum(&udp_packet.to_immutable(), &Ipv4Addr::new(0, 0, 0, 0), &Ipv4Addr::new(255, 255, 255, 255)));
+    }
 }
 
 /* UDP で interface の ipv4 ブロードキャストを受信 */
@@ -56,22 +72,6 @@ pub fn recv_broadcast(interface: &NetworkInterface) {
             }
         }
     }
-}
-
-/* UDP で payload の内容の ipv4 ブロードキャストを送る */
-pub fn send_broadcast(src_port: u16, dest_port: u16, interface: &NetworkInterface, payload: &Vec<u8>) {
-    let mut udp_buffer: Vec<u8> = vec![0; MutableUdpPacket::minimum_packet_size() + payload.len()];
-    let mut udp_packet = MutableUdpPacket::new(&mut udp_buffer).unwrap();
-
-    udp_packet.set_source(src_port);
-    udp_packet.set_destination(dest_port);
-    udp_packet.set_length((MutableUdpPacket::minimum_packet_size() + payload.len()).try_into().unwrap());
-    udp_packet.set_payload(payload);
-    udp_packet.set_checksum(0);
-
-    send_broadcast_ipv4(interface, &udp_packet.packet().to_vec());
-
-    udp_packet.set_checksum(udp::ipv4_checksum(&udp_packet.to_immutable(), &Ipv4Addr::new(0, 0, 0, 0), &Ipv4Addr::new(255, 255, 255, 255)));
 }
 
 /* レイヤ 3 で payload の内容のブロードキャストを送る */
