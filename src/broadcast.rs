@@ -33,7 +33,7 @@ impl BroadcastSocket {
     }
 
     /* UDP で payload の内容の ipv4 ブロードキャストを送る */
-    pub fn send(&self, src_port: u16, dest_port: u16, interface: &NetworkInterface, payload: &Vec<u8>) {
+    pub fn send(&mut self, src_port: u16, dest_port: u16, interface: &NetworkInterface, payload: &Vec<u8>) {
         let mut udp_buffer: Vec<u8> = vec![0; MutableUdpPacket::minimum_packet_size() + payload.len()];
         let mut udp_packet = MutableUdpPacket::new(&mut udp_buffer).unwrap();
 
@@ -42,10 +42,12 @@ impl BroadcastSocket {
         udp_packet.set_length((MutableUdpPacket::minimum_packet_size() + payload.len()).try_into().unwrap());
         udp_packet.set_payload(payload);
         udp_packet.set_checksum(0);
-
-        send_broadcast_ipv4(interface, &udp_packet.packet().to_vec());
-
         udp_packet.set_checksum(udp::ipv4_checksum(&udp_packet.to_immutable(), &Ipv4Addr::new(0, 0, 0, 0), &Ipv4Addr::new(255, 255, 255, 255)));
+
+        let payload = build_ipv4_header(interface, &udp_packet.packet().to_vec());
+
+        let Ethernet(ref mut tx, _) = self.channel else { panic!(""); };
+        tx.send_to(&payload, None).expect("Failed to send");
     }
 }
 
@@ -77,7 +79,7 @@ pub fn recv_broadcast(interface: &NetworkInterface) {
 
 /* レイヤ 3 で payload の内容のブロードキャストを送る */
 /* IPv4 のみ対応 */
-pub fn send_broadcast_ipv4(interface: &NetworkInterface, payload: &Vec<u8>) {
+pub fn build_ipv4_header(interface: &NetworkInterface, payload: &Vec<u8>) -> Vec<u8> {
     let mut ipv4_buffer: Vec<u8> = vec![0; MutableIpv4Packet::minimum_packet_size() + payload.len()];
     let mut ipv4_packet = MutableIpv4Packet::new(&mut ipv4_buffer).unwrap();
 
@@ -96,17 +98,11 @@ pub fn send_broadcast_ipv4(interface: &NetworkInterface, payload: &Vec<u8>) {
     ipv4_packet.set_checksum(ipv4::checksum(&ipv4_packet.to_immutable()));
     ipv4_packet.set_payload(payload);
 
-    send_broadcast_l2(interface, &ipv4_packet.packet().to_vec());
+    build_ethernet_header(interface, &ipv4_packet.packet().to_vec())
 }
 
 /* レイヤ 2 で payload の内容のブロードキャストを送る */
-pub fn send_broadcast_l2(interface: &NetworkInterface, payload: &Vec<u8>) {
-    let (mut tx, _) = match datalink::channel(&interface, Default::default()) {
-        Ok(Ethernet(tx, rx)) => (tx, rx),
-        Ok(_) => panic!("Unsupported channel type"),
-        Err(e) => panic!("Failed to create datalink channel {}", e)
-    };
-
+pub fn build_ethernet_header(interface: &NetworkInterface, payload: &Vec<u8>) -> Vec<u8> {
     let mut ethernet_buffer: Vec<u8> = vec![0; MutableEthernetPacket::minimum_packet_size() + payload.len()];
     let mut ethernet_packet = MutableEthernetPacket::new(&mut ethernet_buffer).unwrap();
 
@@ -115,5 +111,5 @@ pub fn send_broadcast_l2(interface: &NetworkInterface, payload: &Vec<u8>) {
     ethernet_packet.set_ethertype(EtherTypes::Ipv4);
     ethernet_packet.set_payload(payload);
 
-    tx.send_to(ethernet_packet.packet(), None);
+    ethernet_packet.packet().to_vec()
 }

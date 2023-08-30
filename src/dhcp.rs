@@ -19,9 +19,9 @@ pub fn run_client(interface_name: &str) {
         .find(|iface| iface.name == *interface_name)
         .expect("Failed to get interface");
 
-    let sock = BroadcastSocket::new(&interface);
+    let mut sock = BroadcastSocket::new(&interface);
 
-    send_discover(&sock, &interface);
+    send_discover(&mut sock, &interface);
 
     // recv_offer(&interface);
 }
@@ -56,7 +56,7 @@ pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     discover_packet
 }
 
-pub fn send_discover(sock: &BroadcastSocket, interface: &NetworkInterface) {
+pub fn send_discover(sock: &mut BroadcastSocket, interface: &NetworkInterface) {
     let discover_packet = build_discover(interface);
     sock.send(68, 67, interface, &discover_packet.packet());
 }
