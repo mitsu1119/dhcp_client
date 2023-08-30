@@ -24,7 +24,7 @@ pub fn run_client(interface_name: &str) {
     send_discover(&interface);
 }
 
-pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
+pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     let mut discover_buffer: Vec<u8> = vec![0; MutableDhcpPacket::non_option_packet_size()];
     let mut discover_packet = MutableDhcpPacket::new(&mut discover_buffer).expect("");
 
@@ -51,15 +51,12 @@ pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     discover_packet.add_options(Options::DHCPDISCOVER.to_vec());
     discover_packet.add_options(Options::PARAM.to_vec());
     discover_packet.add_options(Options::END.to_vec());
-    discover_packet.add_options(Options::build_padding(&discover_packet.packet()));
 
     discover_packet
 }
 
 pub fn send_discover(interface: &NetworkInterface) {
-    let discover_packet = assemble_discover(interface);
-
-    println!("{:?}", discover_packet);
+    let discover_packet = build_discover(interface);
 
     send_broadcast(68, 67, interface, &discover_packet.packet());
 }

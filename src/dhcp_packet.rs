@@ -1,4 +1,3 @@
-// TODO: options は一旦マジッククッキーだけ
 #[derive(Debug)]
 pub struct MutableDhcpPacket {
     op:     u8,
@@ -62,10 +61,6 @@ impl MutableDhcpPacket {
         236
     }
 
-    pub fn minimum_packet_size() -> usize {
-        300
-    }
-
     pub fn set_op(&mut self, op: u8) { self.op = op; }
     pub fn set_htype(&mut self, htype: u8) { self.htype = htype; }
     pub fn set_hlen(&mut self, hlen: u8) { self.hlen = hlen; }
@@ -107,9 +102,4 @@ impl Options {
 
     // end
     pub const END: [u8; 1] = [0xff];
-
-    // build padding option
-    pub fn build_padding(packet_data: &Vec<u8>) -> Vec<u8> {
-        vec![0; MutableDhcpPacket::minimum_packet_size() - packet_data.len()]
-    }
 }
