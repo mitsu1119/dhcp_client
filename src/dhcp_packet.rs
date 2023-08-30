@@ -97,9 +97,6 @@ impl Options {
     // dhcp message type
     pub const DHCPDISCOVER: [u8; 3] = [0x35, 0x01, 0x01];
 
-    // parameter request list
-    pub const PARAM: [u8; 4] = [0x37, 0x02, 0x01, 0x03];
-
     // end
     pub const END: [u8; 1] = [0xff];
 }

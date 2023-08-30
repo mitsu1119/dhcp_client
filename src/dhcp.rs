@@ -4,7 +4,7 @@ use dhcp_packet::{Op, HType, Options, MutableDhcpPacket};
 
 #[path = "./broadcast.rs"]
 mod broadcast;
-use broadcast::send_broadcast;
+use broadcast::{BroadcastSocket, send_broadcast, recv_broadcast};
 
 use pnet::datalink;
 use pnet::datalink::NetworkInterface;
@@ -21,7 +21,15 @@ pub fn run_client(interface_name: &str) {
 
     let payload: Vec<u8> = vec![0x32u8; 16];
 
+    let sock = BroadcastSocket::new(&interface);
+
     send_discover(&interface);
+
+    // recv_offer(&interface);
+}
+
+pub fn recv_offer(interface: &NetworkInterface) {
+    recv_broadcast(interface);
 }
 
 pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
@@ -49,7 +57,6 @@ pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
 
     discover_packet.add_options(Options::MAGICCOOKIE.to_vec());
     discover_packet.add_options(Options::DHCPDISCOVER.to_vec());
-    discover_packet.add_options(Options::PARAM.to_vec());
     discover_packet.add_options(Options::END.to_vec());
 
     discover_packet
@@ -57,6 +64,5 @@ pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
 
 pub fn send_discover(interface: &NetworkInterface) {
     let discover_packet = build_discover(interface);
-
     send_broadcast(68, 67, interface, &discover_packet.packet());
 }

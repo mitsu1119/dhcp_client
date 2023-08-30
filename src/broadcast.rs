@@ -1,7 +1,7 @@
 use pnet::datalink;
 use pnet::datalink::Channel::Ethernet;
-use pnet::datalink::NetworkInterface;
-use pnet::packet::ethernet::{MutableEthernetPacket, EtherTypes};
+use pnet::datalink::{NetworkInterface, DataLinkSender, DataLinkReceiver};
+use pnet::packet::ethernet::{MutableEthernetPacket, EtherTypes, EthernetPacket};
 
 use pnet::packet::Packet;
 use pnet::util::MacAddr;
@@ -13,6 +13,50 @@ use std::net::Ipv4Addr;
 
 use pnet::packet::udp;
 use pnet::packet::udp::MutableUdpPacket;
+
+// ブロードキャスト用のソケット
+pub struct BroadcastSocket {
+    tx: Box<dyn DataLinkSender>,
+    rx: Box<dyn DataLinkReceiver>
+}
+
+impl BroadcastSocket {
+    pub fn new(interface: &NetworkInterface) -> Self {
+        let (mut tx, mut rx) = match datalink::channel(&interface, Default::default()) {
+            Ok(Ethernet(tx, rx)) => (tx, rx),
+            Ok(_) => panic!("Unsupported channel type"),
+            Err(e) => panic!("Failed to create datalink channel {}", e)
+        };
+
+        BroadcastSocket { tx: tx, rx: rx }
+    }
+}
+
+/* UDP で interface の ipv4 ブロードキャストを受信 */
+pub fn recv_broadcast(interface: &NetworkInterface) {
+    let (mut tx, mut rx) = match datalink::channel(&interface, Default::default()) {
+        Ok(Ethernet(tx, rx)) => (tx, rx),
+        Ok(_) => panic!("Unsupported channel type"),
+        Err(e) => panic!("Failed to create datalink channel {}", e)
+    };
+
+    // データの待受け
+    loop {
+        match rx.next() {
+            Ok(frame) => {
+                // 受信データからイーサネットフレームを構築
+                let frame = EthernetPacket::new(frame).unwrap();
+                if frame.get_ethertype() == EtherTypes::Ipv4 {
+                        println!("yey");
+                        println!("{:?}", frame);
+                }
+            },
+            Err(e) => {
+                println!("Failed to read: {}", e);
+            }
+        }
+    }
+}
 
 /* UDP で payload の内容の ipv4 ブロードキャストを送る */
 pub fn send_broadcast(src_port: u16, dest_port: u16, interface: &NetworkInterface, payload: &Vec<u8>) {
