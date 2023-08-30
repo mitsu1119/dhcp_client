@@ -20,7 +20,7 @@ pub struct MutableDhcpPacket {
 
 impl MutableDhcpPacket {
     pub fn new(buffer: &mut Vec<u8>) -> Result<Self, &str> {
-        if buffer.len() < Self::minimum_packet_size() {
+        if buffer.len() < Self::non_option_packet_size() {
             return Err("Buffer for dhcp packet is too short.")
         }
 
@@ -58,8 +58,12 @@ impl MutableDhcpPacket {
         res
     }
 
-    pub fn minimum_packet_size() -> usize {
+    pub fn non_option_packet_size() -> usize {
         236
+    }
+
+    pub fn minimum_packet_size() -> usize {
+        300
     }
 
     pub fn set_op(&mut self, op: u8) { self.op = op; }
@@ -99,8 +103,13 @@ impl Options {
     pub const DHCPDISCOVER: [u8; 3] = [0x35, 0x01, 0x01];
 
     // parameter request list
-    pub const PARAM: [u8; 3] = [0x37, 0x01, 0x01];
-    
+    pub const PARAM: [u8; 4] = [0x37, 0x02, 0x01, 0x03];
+
     // end
     pub const END: [u8; 1] = [0xff];
+
+    // build padding option
+    pub fn build_padding(packet_data: &Vec<u8>) -> Vec<u8> {
+        vec![0; MutableDhcpPacket::minimum_packet_size() - packet_data.len()]
+    }
 }

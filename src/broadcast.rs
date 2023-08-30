@@ -22,10 +22,12 @@ pub fn send_broadcast(src_port: u16, dest_port: u16, interface: &NetworkInterfac
     udp_packet.set_source(src_port);
     udp_packet.set_destination(dest_port);
     udp_packet.set_length((MutableUdpPacket::minimum_packet_size() + payload.len()).try_into().unwrap());
-    udp_packet.set_checksum(udp::ipv4_checksum(&udp_packet.to_immutable(), &Ipv4Addr::new(0, 0, 0, 0), &Ipv4Addr::new(255, 255, 255, 255)));
     udp_packet.set_payload(payload);
+    udp_packet.set_checksum(0);
 
     send_broadcast_ipv4(interface, &udp_packet.packet().to_vec());
+
+    udp_packet.set_checksum(udp::ipv4_checksum(&udp_packet.to_immutable(), &Ipv4Addr::new(0, 0, 0, 0), &Ipv4Addr::new(255, 255, 255, 255)));
 }
 
 /* レイヤ 3 で payload の内容のブロードキャストを送る */
@@ -68,5 +70,5 @@ pub fn send_broadcast_l2(interface: &NetworkInterface, payload: &Vec<u8>) {
     ethernet_packet.set_ethertype(EtherTypes::Ipv4);
     ethernet_packet.set_payload(payload);
 
-    tx.send_to(ethernet_packet.packet(), None).expect("wow");
+    tx.send_to(ethernet_packet.packet(), None);
 }

@@ -25,7 +25,7 @@ pub fn run_client(interface_name: &str) {
 }
 
 pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
-    let mut discover_buffer: Vec<u8> = vec![0; MutableDhcpPacket::minimum_packet_size()];
+    let mut discover_buffer: Vec<u8> = vec![0; MutableDhcpPacket::non_option_packet_size()];
     let mut discover_packet = MutableDhcpPacket::new(&mut discover_buffer).expect("");
 
     discover_packet.set_op(Op::BOOTREQUEST);
@@ -35,7 +35,6 @@ pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     let mut csprng = ChaCha20Rng::from_entropy();
     let mut xid_array = [0u8; 4];
     csprng.fill_bytes(&mut xid_array);
-    println!("{:?}", xid_array);
     discover_packet.set_xid(0x0100000 * (xid_array[0] as u32) + 0x010000 * (xid_array[1] as u32) + 0x01000 * (xid_array[2] as u32) + xid_array[3] as u32);
 
     let mut chaddr = [0u8; 16];
@@ -52,6 +51,7 @@ pub fn assemble_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     discover_packet.add_options(Options::DHCPDISCOVER.to_vec());
     discover_packet.add_options(Options::PARAM.to_vec());
     discover_packet.add_options(Options::END.to_vec());
+    discover_packet.add_options(Options::build_padding(&discover_packet.packet()));
 
     discover_packet
 }
@@ -60,7 +60,6 @@ pub fn send_discover(interface: &NetworkInterface) {
     let discover_packet = assemble_discover(interface);
 
     println!("{:?}", discover_packet);
-    println!("{:?}", discover_packet.packet());
 
     send_broadcast(68, 67, interface, &discover_packet.packet());
 }
