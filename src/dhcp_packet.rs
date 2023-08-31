@@ -133,8 +133,12 @@ impl Options {
     pub const MAGICCOOKIE: [u8; 4] = [0x63, 0x82, 0x53, 0x63];
 
     // dhcp message type
-    pub const DHCPDISCOVER: [u8; 3] = [0x35, 0x01, 0x01];
-    pub const DHCPOFFER:    [u8; 3] = [0x35, 0x01, 0x02];
+    pub const MESSAGE_TYPE: u8 = 0x35;
+    pub const DHCPDISCOVER: u8 = 1;
+    pub const DHCPOFFER:    u8 = 2;
+    pub const fn build_message_type(message_type: u8) -> [u8; 3] {
+        [Self::MESSAGE_TYPE, 0x01, message_type]
+    }
 
     // end
     pub const END: [u8; 1] = [0xff];

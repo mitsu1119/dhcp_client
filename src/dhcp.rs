@@ -40,15 +40,16 @@ fn dhcpoffer_handler(frame: EthernetPacket) {
         let ipv4_packet = Ipv4Packet::new(frame.payload()).unwrap();
         if ipv4_packet.get_next_level_protocol() == IpNextHeaderProtocols::Udp {
             let packet = UdpPacket::new(ipv4_packet.payload()).unwrap();
-            // TODO: DHCPOFFER か確認
             let mut buffer: Vec<u8> = packet.payload().to_vec();
             let dhcp_packet = MutableDhcpPacket::new(&mut buffer).unwrap();
             let options = dhcp_packet.get_options();
-            println!("{:?}", options);
+            options.iter().for_each(|option| {
+                if option[0] == Options::MESSAGE_TYPE && option[2] == Options::DHCPOFFER {
+                    println!("{:?}", option);
+                }
+            });
         }
     }
-
-    ()
 }
 
 pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
@@ -75,7 +76,7 @@ pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     discover_packet.set_chaddr(chaddr);
 
     discover_packet.add_options(Options::MAGICCOOKIE.to_vec());
-    discover_packet.add_options(Options::DHCPDISCOVER.to_vec());
+    discover_packet.add_options(Options::build_message_type(Options::DHCPDISCOVER).to_vec());
     discover_packet.add_options(Options::END.to_vec());
 
     discover_packet
