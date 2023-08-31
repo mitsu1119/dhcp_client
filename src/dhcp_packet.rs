@@ -58,7 +58,6 @@ impl MutableDhcpPacket {
                 0xff => options.push(ops.drain(..1).collect::<Vec<u8>>()),
                 other => options.push(ops.drain(..(ops[1]+2) as usize).collect::<Vec<u8>>()),
             };
-            println!("{:?}", options);
         }
         if padding.len() != 0 { options.push(padding); }
 
@@ -99,6 +98,22 @@ impl MutableDhcpPacket {
     pub fn set_sname(&mut self, sname: [u8; 64]) { self.sname = sname.to_vec(); }
     pub fn set_file(&mut self, file: [u8; 128]) { self.file = file.to_vec(); }
     pub fn add_options(&mut self, option: Vec<u8>) { self.options.push(option); }
+
+    pub fn get_op(&self) -> u8 { self.op }
+    pub fn get_htype(&self) -> u8 { self.htype }
+    pub fn get_hlen(&self) -> u8 { self.hlen }
+    pub fn get_hops(&self) -> u8 { self.hops }
+    pub fn get_xid(&self) -> u32 { self.xid }
+    pub fn get_secs(&self) -> u16 { self.secs }
+    pub fn get_flags(&self) -> u16 { self.flags }
+    pub fn get_ciaddr(&self) -> u32 { self.ciaddr }
+    pub fn get_yiaddr(&self) -> u32 { self.yiaddr }
+    pub fn get_siaddr(&self) -> u32 { self.siaddr }
+    pub fn get_giaddr(&self) -> u32 { self.giaddr }
+    pub fn get_chaddr(&self) -> [u8; 16] { self.chaddr.clone().try_into().unwrap() }
+    pub fn get_sname(&self) -> [u8; 64] { self.sname.clone().try_into().unwrap() }
+    pub fn get_file(&self) -> [u8; 128] { self.file.clone().try_into().unwrap() }
+    pub fn get_options(&self) -> Vec<Vec<u8>> { self.options.clone() }
 }
 
 pub struct Op {}

@@ -43,7 +43,8 @@ fn dhcpoffer_handler(frame: EthernetPacket) {
             // TODO: DHCPOFFER か確認
             let mut buffer: Vec<u8> = packet.payload().to_vec();
             let dhcp_packet = MutableDhcpPacket::new(&mut buffer).unwrap();
-            println!("{:?}", dhcp_packet);
+            let options = dhcp_packet.get_options();
+            println!("{:?}", options);
         }
     }
 
