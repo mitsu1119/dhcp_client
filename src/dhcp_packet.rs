@@ -23,21 +23,21 @@ impl MutableDhcpPacket {
             return Err("Buffer for dhcp packet is too short.")
         }
 
+        let op = buffer[0];
+        let htype = buffer[1];
+        let hlen = buffer[2];
+        let hops = buffer[3];
+        let xid = u32::from_be_bytes(buffer[4..8].try_into().unwrap());
+        let secs = u16::from_be_bytes(buffer[8..10].try_into().unwrap());
+        let flags = u16::from_be_bytes(buffer[10..12].try_into().unwrap());
+        let ciaddr = u32::from_be_bytes(buffer[12..16].try_into().unwrap());
+        let yiaddr = u32::from_be_bytes(buffer[16..20].try_into().unwrap());
+        let siaddr = u32::from_be_bytes(buffer[20..24].try_into().unwrap());
+        let giaddr = u32::from_be_bytes(buffer[24..28].try_into().unwrap());
+        let chaddr = buffer[28..44].to_vec();
+        let sname = buffer[44..108].to_vec();
+        let file = buffer[108..236].to_vec();
         let options = vec![];
-        let file = buffer.drain(108..).collect::<Vec<u8>>();
-        let sname = buffer.drain(44..).collect::<Vec<u8>>();
-        let chaddr = buffer.drain(28..).collect::<Vec<u8>>();
-        let giaddr = buffer.pop().unwrap() as u32 + 0x10 * (buffer.pop().unwrap() as u32) + 0x100 * (buffer.pop().unwrap() as u32) + 0x1000 * (buffer.pop().unwrap() as u32);
-        let siaddr = buffer.pop().unwrap() as u32 + 0x10 * (buffer.pop().unwrap() as u32) + 0x100 * (buffer.pop().unwrap() as u32) + 0x1000 * (buffer.pop().unwrap() as u32);
-        let yiaddr = buffer.pop().unwrap() as u32 + 0x10 * (buffer.pop().unwrap() as u32) + 0x100 * (buffer.pop().unwrap() as u32) + 0x1000 * (buffer.pop().unwrap() as u32);
-        let ciaddr = buffer.pop().unwrap() as u32 + 0x10 * (buffer.pop().unwrap() as u32) + 0x100 * (buffer.pop().unwrap() as u32) + 0x1000 * (buffer.pop().unwrap() as u32);
-        let flags = 0x10 * (buffer.pop().unwrap() as u16) + buffer.pop().unwrap() as u16;
-        let secs = 0x10 * (buffer.pop().unwrap() as u16) + buffer.pop().unwrap() as u16;
-        let xid = buffer.pop().unwrap() as u32 + 0x10 * (buffer.pop().unwrap() as u32) + 0x100 * (buffer.pop().unwrap() as u32) + 0x1000 * (buffer.pop().unwrap() as u32);
-        let hops = buffer.pop().unwrap();
-        let hlen = buffer.pop().unwrap();
-        let htype = buffer.pop().unwrap();
-        let op = buffer.pop().unwrap();
 
         let res = MutableDhcpPacket {
             op, htype, hlen, hops, xid, secs, flags, ciaddr, yiaddr, siaddr, giaddr, chaddr, sname, file, options
