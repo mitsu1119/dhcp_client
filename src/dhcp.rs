@@ -55,9 +55,9 @@ fn build_request(interface: &NetworkInterface, xid: u32, ip: Ipv4Addr, server_ip
     chaddr[5] = mac.5;
     request_packet.set_chaddr(chaddr);
 
-    // TODO: requested ip address
     request_packet.add_options(Options::MAGICCOOKIE.to_vec());
     request_packet.add_options(Options::build_message_type(Options::DHCPREQUEST).to_vec());
+    request_packet.add_options(Options::build_requested_ip_address(ip).to_vec());
     request_packet.add_options(Options::build_server_identifier(server_ip).to_vec());
     request_packet.add_options(Options::END.to_vec());
 

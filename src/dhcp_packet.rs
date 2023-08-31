@@ -133,6 +133,13 @@ impl Options {
     // magic cookie
     pub const MAGICCOOKIE: [u8; 4] = [0x63, 0x82, 0x53, 0x63];
 
+    // requested ip address
+    pub const REQUESTED_IP_ADDRESS: u8 = 0x32;
+    pub const fn build_requested_ip_address(ip: Ipv4Addr) -> [u8; 6] {
+        let ip_octets = ip.octets();
+        [Self::REQUESTED_IP_ADDRESS, 4, ip_octets[0], ip_octets[1], ip_octets[2], ip_octets[3]]
+    }
+
     // dhcp message type
     pub const MESSAGE_TYPE: u8 = 0x35;
     pub const DHCPDISCOVER: u8 = 1;
