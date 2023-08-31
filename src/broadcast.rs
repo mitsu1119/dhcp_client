@@ -49,29 +49,19 @@ impl BroadcastSocket {
         let Ethernet(ref mut tx, _) = self.channel else { panic!(""); };
         tx.send_to(&payload, None).expect("Failed to send");
     }
-}
 
-/* UDP で interface の ipv4 ブロードキャストを受信 */
-pub fn recv_broadcast(interface: &NetworkInterface) {
-    let (_, mut rx) = match datalink::channel(&interface, Default::default()) {
-        Ok(Ethernet(tx, rx)) => (tx, rx),
-        Ok(_) => panic!("Unsupported channel type"),
-        Err(e) => panic!("Failed to create datalink channel {}", e)
-    };
-
-    // データの待受け
-    loop {
-        match rx.next() {
-            Ok(frame) => {
-                // 受信データからイーサネットフレームを構築
-                let frame = EthernetPacket::new(frame).unwrap();
-                if frame.get_ethertype() == EtherTypes::Ipv4 {
-                        println!("yey");
-                        println!("{:?}", frame);
+    /* 自分の MAC アドレス宛のフレームを一つ受信 */
+    pub fn recv_l2(&mut self, func: impl Fn(EthernetPacket) -> ()) {
+        let Ethernet(_, ref mut rx) = self.channel else { panic!(""); };
+        loop {
+            match rx.next() {
+                Ok(frame) => {
+                    let frame = EthernetPacket::new(frame).unwrap();
+                    func(frame);
+                },
+                Err(e) => {
+                    println!("Failed to read: {}", e);
                 }
-            },
-            Err(e) => {
-                println!("Failed to read: {}", e);
             }
         }
     }

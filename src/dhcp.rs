@@ -8,6 +8,7 @@ use broadcast::BroadcastSocket;
 
 use pnet::datalink;
 use pnet::datalink::NetworkInterface;
+use pnet::packet::ethernet::EthernetPacket;
 
 use rand::prelude::*;
 use rand_chacha::ChaCha20Rng;
@@ -22,8 +23,17 @@ pub fn run_client(interface_name: &str) {
     let mut sock = BroadcastSocket::new(&interface);
 
     send_discover(&mut sock, &interface);
+    sock.recv_l2(frame_handler);
 
     // recv_offer(&interface);
+}
+
+fn frame_handler(frame: EthernetPacket) {
+    println!("{:?}", frame);
+    if frame.get_ethertype() == EtherTypes::Ipv4 {
+        println!("yey");
+        println!("{:?}", frame);
+    }
 }
 
 pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
