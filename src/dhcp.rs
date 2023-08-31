@@ -14,6 +14,7 @@ use pnet::packet::ethernet::EtherTypes;
 use pnet::packet::Packet;
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ipv4::Ipv4Packet;
+use std::net::Ipv4Addr;
 
 use pnet::packet::udp::UdpPacket;
 
@@ -30,11 +31,12 @@ pub fn run_client(interface_name: &str) {
     let mut sock = BroadcastSocket::new(&interface);
 
     send_discover(&mut sock, &interface);
-    sock.recv_l2(dhcpoffer_handler);
+    let ip = sock.recv_l2(dhcpoffer_handler);
+    println!("{:?}", ip);
 }
 
 /* DHCPOFFER の受信 */
-fn dhcpoffer_handler(frame: EthernetPacket) {
+fn dhcpoffer_handler(frame: EthernetPacket) -> Ipv4Addr {
     if frame.get_ethertype() == EtherTypes::Ipv4 {
         // フレームを ipv4 パケットに変換
         let ipv4_packet = Ipv4Packet::new(frame.payload()).unwrap();
@@ -43,13 +45,15 @@ fn dhcpoffer_handler(frame: EthernetPacket) {
             let mut buffer: Vec<u8> = packet.payload().to_vec();
             let dhcp_packet = MutableDhcpPacket::new(&mut buffer).unwrap();
             let options = dhcp_packet.get_options();
-            options.iter().for_each(|option| {
+            for option in options.iter() {
                 if option[0] == Options::MESSAGE_TYPE && option[2] == Options::DHCPOFFER {
-                    println!("{:?}", option);
+                    let ip = dhcp_packet.get_yiaddr().to_be_bytes();
+                    return Ipv4Addr::new(ip[0], ip[1], ip[2], ip[3]);
                 }
-            });
+            }
         }
     }
+    panic!("Unsupported packet");
 }
 
 pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {

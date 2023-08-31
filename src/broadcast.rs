@@ -51,15 +51,14 @@ impl BroadcastSocket {
     }
 
     /* 自分の MAC アドレス宛のフレームを一つ受信して func を呼び出し */
-    pub fn recv_l2(&mut self, func: impl Fn(EthernetPacket) -> ()) {
+    pub fn recv_l2<T>(&mut self, func: impl Fn(EthernetPacket) -> T) -> T {
         let Ethernet(_, ref mut rx) = self.channel else { panic!(""); };
         loop {
             match rx.next() {
                 Ok(frame) => {
                     let frame = EthernetPacket::new(frame).unwrap();
                     if frame.get_destination() == self.interface.mac.unwrap() {
-                        func(frame);
-                        break;
+                        return func(frame);
                     }
                 },
                 Err(e) => {
