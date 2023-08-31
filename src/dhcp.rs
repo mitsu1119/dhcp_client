@@ -9,6 +9,13 @@ use broadcast::BroadcastSocket;
 use pnet::datalink;
 use pnet::datalink::NetworkInterface;
 use pnet::packet::ethernet::EthernetPacket;
+use pnet::packet::ethernet::EtherTypes;
+
+use pnet::packet::Packet;
+use pnet::packet::ip::IpNextHeaderProtocols;
+use pnet::packet::ipv4::Ipv4Packet;
+
+use pnet::packet::udp::UdpPacket;
 
 use rand::prelude::*;
 use rand_chacha::ChaCha20Rng;
@@ -23,17 +30,24 @@ pub fn run_client(interface_name: &str) {
     let mut sock = BroadcastSocket::new(&interface);
 
     send_discover(&mut sock, &interface);
-    sock.recv_l2(frame_handler);
-
-    // recv_offer(&interface);
+    sock.recv_l2(dhcpoffer_handler);
 }
 
-fn frame_handler(frame: EthernetPacket) {
-    println!("{:?}", frame);
+/* DHCPOFFER の受信 */
+fn dhcpoffer_handler(frame: EthernetPacket) {
     if frame.get_ethertype() == EtherTypes::Ipv4 {
-        println!("yey");
-        println!("{:?}", frame);
+        // フレームを ipv4 パケットに変換
+        let ipv4_packet = Ipv4Packet::new(frame.payload()).unwrap();
+        if ipv4_packet.get_next_level_protocol() == IpNextHeaderProtocols::Udp {
+            let packet = UdpPacket::new(ipv4_packet.payload()).unwrap();
+            // TODO: DHCPOFFER か確認
+            let mut buffer: Vec<u8> = packet.payload().to_vec();
+            let dhcp_packet = MutableDhcpPacket::new(&mut buffer).unwrap();
+            println!("{:?}", dhcp_packet);
+        }
     }
+
+    ()
 }
 
 pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {

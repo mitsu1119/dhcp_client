@@ -50,14 +50,17 @@ impl BroadcastSocket {
         tx.send_to(&payload, None).expect("Failed to send");
     }
 
-    /* 自分の MAC アドレス宛のフレームを一つ受信 */
+    /* 自分の MAC アドレス宛のフレームを一つ受信して func を呼び出し */
     pub fn recv_l2(&mut self, func: impl Fn(EthernetPacket) -> ()) {
         let Ethernet(_, ref mut rx) = self.channel else { panic!(""); };
         loop {
             match rx.next() {
                 Ok(frame) => {
                     let frame = EthernetPacket::new(frame).unwrap();
-                    func(frame);
+                    if frame.get_destination() == self.interface.mac.unwrap() {
+                        func(frame);
+                        break;
+                    }
                 },
                 Err(e) => {
                     println!("Failed to read: {}", e);
