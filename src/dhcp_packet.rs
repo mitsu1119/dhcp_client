@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 #[derive(Debug)]
 pub struct MutableDhcpPacket {
     op:     u8,
@@ -37,7 +39,28 @@ impl MutableDhcpPacket {
         let chaddr = buffer[28..44].to_vec();
         let sname = buffer[44..108].to_vec();
         let file = buffer[108..236].to_vec();
-        let options = vec![];
+
+        let mut options: Vec<Vec<u8>> = vec![];
+        let mut ops: VecDeque<u8> = buffer[Self::non_option_packet_size()..].to_vec().into();
+
+        let mut padding: Vec<u8> = vec![];
+        while ops.len() != 0 {
+            if ops[0] != 0x00 && padding.len() != 0 {
+                options.push(padding);
+                padding = vec![];
+            }
+            match ops[0] {
+                // magic cookie
+                0x63 => options.push(ops.drain(..4).collect::<Vec<u8>>()),
+                // pad
+                0x00 => { padding.push(0u8); ops.pop_front(); },
+                // end
+                0xff => options.push(ops.drain(..1).collect::<Vec<u8>>()),
+                other => options.push(ops.drain(..(ops[1]+2) as usize).collect::<Vec<u8>>()),
+            };
+            println!("{:?}", options);
+        }
+        if padding.len() != 0 { options.push(padding); }
 
         let res = MutableDhcpPacket {
             op, htype, hlen, hops, xid, secs, flags, ciaddr, yiaddr, siaddr, giaddr, chaddr, sname, file, options
