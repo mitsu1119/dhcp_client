@@ -31,12 +31,12 @@ pub fn run_client(interface_name: &str) {
     let mut sock = BroadcastSocket::new(&interface);
 
     let xid = send_discover(&mut sock, &interface);
-    let ip = sock.recv_l2(dhcpoffer_handler);
+    let (ip, server_ip) = sock.recv_l2(dhcpoffer_handler);
 
-    send_request(&mut sock, xid, ip);
+    send_request(&mut sock, xid, ip, server_ip);
 }
 
-fn build_request(interface: &NetworkInterface, xid: u32, ip: Ipv4Addr) -> MutableDhcpPacket {
+fn build_request(interface: &NetworkInterface, xid: u32, ip: Ipv4Addr, server_ip: Ipv4Addr) -> MutableDhcpPacket {
     let mut request_buffer: Vec<u8> = vec![0; MutableDhcpPacket::non_option_packet_size()];
     let mut request_packet = MutableDhcpPacket::new(&mut request_buffer).expect("");
 
@@ -55,23 +55,24 @@ fn build_request(interface: &NetworkInterface, xid: u32, ip: Ipv4Addr) -> Mutabl
     chaddr[5] = mac.5;
     request_packet.set_chaddr(chaddr);
 
-    // TODO: requested ip address, server identifier
+    // TODO: requested ip address
     request_packet.add_options(Options::MAGICCOOKIE.to_vec());
     request_packet.add_options(Options::build_message_type(Options::DHCPREQUEST).to_vec());
+    request_packet.add_options(Options::build_server_identifier(server_ip).to_vec());
     request_packet.add_options(Options::END.to_vec());
 
     request_packet
 }
 
 /* DHCP INFORM の送信 */
-fn send_request(sock: &mut BroadcastSocket, xid: u32, ip: Ipv4Addr) {
-    let request_packet = build_request(sock.get_interface(), xid, ip);
+fn send_request(sock: &mut BroadcastSocket, xid: u32, ip: Ipv4Addr, server_ip: Ipv4Addr) {
+    let request_packet = build_request(sock.get_interface(), xid, ip, server_ip);
     println!("{:?}", request_packet);
     // sock.send(68, 67, interface, &inform_packet.packet());
 }
 
 /* DHCPOFFER の受信 */
-fn dhcpoffer_handler(frame: EthernetPacket) -> Ipv4Addr {
+fn dhcpoffer_handler(frame: EthernetPacket) -> (Ipv4Addr, Ipv4Addr) {
     if frame.get_ethertype() == EtherTypes::Ipv4 {
         // フレームを ipv4 パケットに変換
         let ipv4_packet = Ipv4Packet::new(frame.payload()).unwrap();
@@ -80,10 +81,14 @@ fn dhcpoffer_handler(frame: EthernetPacket) -> Ipv4Addr {
             let mut buffer: Vec<u8> = packet.payload().to_vec();
             let dhcp_packet = MutableDhcpPacket::new(&mut buffer).unwrap();
             let options = dhcp_packet.get_options();
+            let server_ip_bytes = options.iter()
+                .find(|&x| x[0] == Options::SERVER_IDENTIFIER)
+                .unwrap()[2..].to_vec();
+            let server_ip = Ipv4Addr::new(server_ip_bytes[0], server_ip_bytes[1], server_ip_bytes[2], server_ip_bytes[3]);
             for option in options.iter() {
                 if option[0] == Options::MESSAGE_TYPE && option[2] == Options::DHCPOFFER {
                     let ip = dhcp_packet.get_yiaddr().to_be_bytes();
-                    return Ipv4Addr::new(ip[0], ip[1], ip[2], ip[3]);
+                    return (ip.into(), server_ip);
                 }
             }
         }

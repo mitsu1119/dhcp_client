@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::net::Ipv4Addr;
 
 #[derive(Debug)]
 pub struct MutableDhcpPacket {
@@ -139,6 +140,13 @@ impl Options {
     pub const DHCPREQUEST:  u8 = 3;
     pub const fn build_message_type(message_type: u8) -> [u8; 3] {
         [Self::MESSAGE_TYPE, 0x01, message_type]
+    }
+
+    // server identifier
+    pub const SERVER_IDENTIFIER: u8 = 0x36;
+    pub fn build_server_identifier(server_ip: Ipv4Addr) -> [u8; 6] {
+        let server_ip_octets = server_ip.octets();
+        [Self::SERVER_IDENTIFIER, 4, server_ip_octets[0], server_ip_octets[1], server_ip_octets[2], server_ip_octets[3]]
     }
 
     // end
