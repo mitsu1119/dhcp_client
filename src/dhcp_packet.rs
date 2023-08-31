@@ -124,7 +124,7 @@ impl Op {
 
 pub struct HType {}
 impl HType {
-    pub const Ethernet: u8 = 1;
+    pub const ETHERNET: u8 = 1;
 }
 
 pub struct Options {}
@@ -136,6 +136,7 @@ impl Options {
     pub const MESSAGE_TYPE: u8 = 0x35;
     pub const DHCPDISCOVER: u8 = 1;
     pub const DHCPOFFER:    u8 = 2;
+    pub const DHCPREQUEST:  u8 = 3;
     pub const fn build_message_type(message_type: u8) -> [u8; 3] {
         [Self::MESSAGE_TYPE, 0x01, message_type]
     }

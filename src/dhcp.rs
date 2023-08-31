@@ -30,9 +30,44 @@ pub fn run_client(interface_name: &str) {
 
     let mut sock = BroadcastSocket::new(&interface);
 
-    send_discover(&mut sock, &interface);
+    let xid = send_discover(&mut sock, &interface);
     let ip = sock.recv_l2(dhcpoffer_handler);
-    println!("{:?}", ip);
+
+    send_request(&mut sock, xid, ip);
+}
+
+fn build_request(interface: &NetworkInterface, xid: u32, ip: Ipv4Addr) -> MutableDhcpPacket {
+    let mut request_buffer: Vec<u8> = vec![0; MutableDhcpPacket::non_option_packet_size()];
+    let mut request_packet = MutableDhcpPacket::new(&mut request_buffer).expect("");
+
+    request_packet.set_op(Op::BOOTREQUEST);
+    request_packet.set_htype(HType::ETHERNET);
+    request_packet.set_hlen(6);
+    request_packet.set_xid(xid);
+
+    let mut chaddr = [0u8; 16];
+    let mac = interface.mac.unwrap();
+    chaddr[0] = mac.0;
+    chaddr[1] = mac.1;
+    chaddr[2] = mac.2;
+    chaddr[3] = mac.3;
+    chaddr[4] = mac.4;
+    chaddr[5] = mac.5;
+    request_packet.set_chaddr(chaddr);
+
+    // TODO: requested ip address, server identifier
+    request_packet.add_options(Options::MAGICCOOKIE.to_vec());
+    request_packet.add_options(Options::build_message_type(Options::DHCPREQUEST).to_vec());
+    request_packet.add_options(Options::END.to_vec());
+
+    request_packet
+}
+
+/* DHCP INFORM の送信 */
+fn send_request(sock: &mut BroadcastSocket, xid: u32, ip: Ipv4Addr) {
+    let request_packet = build_request(sock.get_interface(), xid, ip);
+    println!("{:?}", request_packet);
+    // sock.send(68, 67, interface, &inform_packet.packet());
 }
 
 /* DHCPOFFER の受信 */
@@ -56,12 +91,12 @@ fn dhcpoffer_handler(frame: EthernetPacket) -> Ipv4Addr {
     panic!("Unsupported packet");
 }
 
-pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
+fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     let mut discover_buffer: Vec<u8> = vec![0; MutableDhcpPacket::non_option_packet_size()];
     let mut discover_packet = MutableDhcpPacket::new(&mut discover_buffer).expect("");
 
     discover_packet.set_op(Op::BOOTREQUEST);
-    discover_packet.set_htype(HType::Ethernet);
+    discover_packet.set_htype(HType::ETHERNET);
     discover_packet.set_hlen(6);
 
     let mut csprng = ChaCha20Rng::from_entropy();
@@ -86,7 +121,10 @@ pub fn build_discover(interface: &NetworkInterface) -> MutableDhcpPacket {
     discover_packet
 }
 
-pub fn send_discover(sock: &mut BroadcastSocket, interface: &NetworkInterface) {
+/* DHCP DISCOVER の送信 */
+/* xid を返却 */
+fn send_discover(sock: &mut BroadcastSocket, interface: &NetworkInterface) -> u32 {
     let discover_packet = build_discover(interface);
     sock.send(68, 67, interface, &discover_packet.packet());
+    discover_packet.get_xid()
 }

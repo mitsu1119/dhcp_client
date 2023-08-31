@@ -32,6 +32,10 @@ impl BroadcastSocket {
         BroadcastSocket { interface: interface.clone(), channel: Ethernet(tx, rx) }
     }
 
+    pub fn get_interface(&self) -> &NetworkInterface {
+        &self.interface
+    }
+
     /* UDP で payload の内容の ipv4 ブロードキャストを送る */
     pub fn send(&mut self, src_port: u16, dest_port: u16, interface: &NetworkInterface, payload: &Vec<u8>) {
         let mut udp_buffer: Vec<u8> = vec![0; MutableUdpPacket::minimum_packet_size() + payload.len()];
