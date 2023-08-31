@@ -67,8 +67,9 @@ fn build_request(interface: &NetworkInterface, xid: u32, ip: Ipv4Addr, server_ip
 /* DHCP INFORM の送信 */
 fn send_request(sock: &mut BroadcastSocket, xid: u32, ip: Ipv4Addr, server_ip: Ipv4Addr) {
     let request_packet = build_request(sock.get_interface(), xid, ip, server_ip);
+    let interface = sock.get_interface().clone();
     println!("{:?}", request_packet);
-    // sock.send(68, 67, interface, &inform_packet.packet());
+    sock.send(68, 67, &interface, &request_packet.packet());
 }
 
 /* DHCPOFFER の受信 */
